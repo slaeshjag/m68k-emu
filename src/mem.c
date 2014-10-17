@@ -2,7 +2,8 @@
 ** 0x00000000 - 0x0007FFFF	ROM (before bank-switch)		*
 ** 0x00000000 - 0x0007FFFF	LLRAM mirror (after bank-switch)	*
 ** 0x00080000 - 0x000FFFFF	LLRAM					*
-** 0x10000000 - 0x13FFFFFF	Main RAM				*/
+** 0x10000000 - 0x13FFFFFF	Main RAM				*
+** 0x20000000 - 0x2FFFFFFF	Chipset control registers		*/
 
 /* LLRAM Map								*
 ** 0x00000000 - 0x000003FF	Reserved for CPU vectors		*
@@ -30,7 +31,6 @@ struct Mem *mem;
 
 void *mem_decode_addr(unsigned int address, int *write, int *endian) {
 	*endian = 0;
-//	fprintf(stderr, "Decoding address %X\n", address);
 	if (address < 0x80000) {
 		if (mem->rom_active) {
 			*write = 0;
@@ -67,7 +67,7 @@ unsigned int m68k_read_memory_16(unsigned int address) {
 	
 	ptr = mem_decode_addr(address, &write, &endian);
 	data = *((uint16_t *) ptr);
-	if (endian)
+	//if (endian)
 		data = htons(data);
 	return data;
 }
@@ -78,7 +78,7 @@ unsigned int m68k_read_memory_32(unsigned int address) {
 	uint32_t data;
 	ptr = mem_decode_addr(address, &write, &endian);
 	data = *((uint32_t *) ptr);
-	if (endian)
+	//if (endian)
 		data = htonl(data);
 	return data;
 }
@@ -89,7 +89,10 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
 	ptr = mem_decode_addr(address, &write, &endian);
 	
 	if (!write) {
-		fprintf(stderr, "Invalid write to %X\n", address);
+		if (address == 0xFFFFFFFF)
+			fprintf(stdout, "%c", (char) value);
+		else
+			fprintf(stderr, "Invalid write to %X\n", address);
 		return;
 	}
 
@@ -102,7 +105,7 @@ void m68k_write_memory_16(unsigned int address, unsigned int value) {
 	int write, endian;
 
 	ptr = mem_decode_addr(address, &write, &endian);
-	if (endian)
+	//if (endian)
 		value = ntohs(value);
 	if (!write) {
 		fprintf(stderr, "Invalid write to %X\n", address);
@@ -118,7 +121,7 @@ void m68k_write_memory_32(unsigned int address, unsigned int value) {
 	int write, endian;
 
 	ptr = mem_decode_addr(address, &write, &endian);
-	if (endian)
+	//if (endian)
 		value = ntohl(value);
 	if (!write) {
 		fprintf(stderr, "Invalid write to %X\n", address);
