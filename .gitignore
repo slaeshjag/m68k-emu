@@ -1,0 +1,8 @@
+*.elf
+*.img
+*.bin
+*.rom
+*.o
+*.so
+*.swp
+*.swo
