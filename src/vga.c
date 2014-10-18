@@ -17,8 +17,6 @@ void vga_init() {
 	for (i = 0; i < 640*480; i++)
 		vga_state.buff[i] = 0;
 
-	/* TODO: Load palette from file */
-
 	vga_state.line = 0;
 	vga_state.ticks = SDL_GetTicks();
 
