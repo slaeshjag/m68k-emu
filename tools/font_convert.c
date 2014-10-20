@@ -33,7 +33,7 @@ int main(int argc, char **argv) {
 	ptr = tex->pixels;
 	w = tex->w + (tex->w % 4);
 	fprintf(out, "#ifndef __VGA_FONT_H__\n#define __VGA_FONT_H__\n");
-	fprintf(out, "static char vgafont_data[%i] = {", slot * 16);
+	fprintf(out, "static unsigned char vgafont_data[%i] = {", slot * 16);
 	for (i = 0; i < slot; i++) {
 		fprintf(out, "\n\t");
 		for (j = 0; j < 16; j++) {
