@@ -2,6 +2,7 @@
 # Makefile configurations
 
 TARGETCC	?=	m68k-elf-gcc
+TARGETAS	?=	m68k-elf-as
 BIN		=	$(TOPDIR)/bin/emu.elf
 BOOTIMG		=	$(TOPDIR)/bin/boot.rom
 OSFS		=	$(TOPDIR)/bin/os.rom

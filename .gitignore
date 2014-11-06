@@ -3,6 +3,7 @@
 *.bin
 *.rom
 *.o
+*.ao
 *.so
 *.swp
 *.swo

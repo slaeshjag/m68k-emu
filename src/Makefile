@@ -21,5 +21,5 @@ clean:
 
 %.o: %.c %.h
 	@echo " [ CC ] src/$<"
-	@$(CC) $(CFLAGS) -c -o $@ $<
+	@$(CC) $(CFLAGS) $(DBGFLAGS) -c -o $@ $<
 	
