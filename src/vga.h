@@ -1,6 +1,7 @@
 #ifndef __VGA_H__
 #define	__VGA_H__
 
+#include <stdint.h>
 #include <SDL/SDL.h>
 
 #define	VGA_WINDOW_SCROLL
@@ -16,8 +17,8 @@ struct VgaRegister {
 };
 
 struct {
-	unsigned char		*buff;
-	unsigned short		*pal;
+	uint8_t		*buff;
+	uint8_t		*pal;
 	int			line;
 
 	struct VgaRegister	reg;

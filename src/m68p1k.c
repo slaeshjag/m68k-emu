@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "m68k.h"
+#include <stdbool.h>
+#include <pthread.h>
+#include "cpu/m68000.h"
 #include "mem.h"
 #include "vga.h"
 #include "signal.h"
@@ -10,17 +12,27 @@ void die(int arne) {
 	exit(0);
 }
 
+static void *run_cpu(void *data) {
+	m68030_start();
+	
+	pthread_exit(NULL);
+}
+
 
 int main(int argc, char **argv) {
+	pthread_attr_t attr;
+	pthread_t thread;
+	
 	signal(SIGINT, die);
 	mem_init();
 	vga_init();
-	m68k_init();
-	m68k_set_cpu_type(M68K_CPU_TYPE_68020);
-	m68k_pulse_reset();
-
+	m68030_init();
+	m68030_reset(true);
+	
+	pthread_attr_init(&attr);
+	pthread_create(&thread, &attr, run_cpu, NULL);
+	
 	for (;;) {
-		m68k_execute(800);
 		vga_render_line();
 	}
 

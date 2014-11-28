@@ -26,12 +26,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include <arpa/inet.h>
 
 struct Mem *mem;
 
-void *mem_decode_addr(unsigned int address, int *write, int *endian) {
-	*endian = 0;
+uint32_t junk;
+
+void *mem_decode_addr(unsigned int address, int *write) {
 	*write = 1;
 
 	if (address < 0x8) {
@@ -57,40 +57,36 @@ void *mem_decode_addr(unsigned int address, int *write, int *endian) {
 
 
 unsigned int m68k_read_memory_8(unsigned int address) {
-	void *ptr;
-	int write, endian;
+	uint8_t *ptr;
+	int write;
 
-	ptr = mem_decode_addr(address, &write, &endian);
-	return *((uint8_t *) ptr);
+	ptr = mem_decode_addr(address, &write);
+	return *ptr;
 }
 
 unsigned int m68k_read_memory_16(unsigned int address) {
-	void *ptr;
-	int write, endian;
+	uint8_t *ptr;
+	int write;
 	uint16_t data;
 	
-	ptr = mem_decode_addr(address, &write, &endian);
-	data = *((uint16_t *) ptr);
-	//if (endian)
-		data = htons(data);
+	ptr = mem_decode_addr(address, &write);
+	data = ((*ptr) << 8) | ((*(ptr + 1)) << 0);
 	return data;
 }
 
 unsigned int m68k_read_memory_32(unsigned int address) {
-	void *ptr;
-	int write, endian;
+	uint8_t *ptr;
+	int write;
 	uint32_t data;
-	ptr = mem_decode_addr(address, &write, &endian);
-	data = *((uint32_t *) ptr);
-	//if (endian)
-		data = htonl(data);
+	ptr = mem_decode_addr(address, &write);
+	data = ((*ptr) << 24) | ((*(ptr + 1)) << 16) | ((*(ptr + 2)) << 8) | ((*(ptr + 3)) << 0);
 	return data;
 }
 
 void m68k_write_memory_8(unsigned int address, unsigned int value) {
-	void *ptr;
-	int write, endian;
-	ptr = mem_decode_addr(address, &write, &endian);
+	uint8_t *ptr;
+	int write;
+	ptr = mem_decode_addr(address, &write);
 	
 	if (!write) {
 		if ((address & 0xF0000000) == 0x20000000)
@@ -102,34 +98,32 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
 		return;
 	}
 
-	*((uint8_t *) ptr) = value;
+	*ptr++ = value;
 	return;
 }
 
 void m68k_write_memory_16(unsigned int address, unsigned int value) {
-	void *ptr;
-	int write, endian;
+	uint8_t *ptr;
+	int write;
 
-	ptr = mem_decode_addr(address, &write, &endian);
-	//if (endian)
+	ptr = mem_decode_addr(address, &write);
 	if (!write) {
 		if ((address & 0xF0000000) == 0x20000000)
 			return chipset_write_io(address, value);
 		fprintf(stderr, "Invalid write to %X\n", address);
 		return;
 	}
-
-	value = ntohs(value);
-	*((uint16_t *) ptr) = value;
+	
+	*ptr++ = value >> 8;
+	*ptr++ = value >> 0;
 	return;
 }
 
 void m68k_write_memory_32(unsigned int address, unsigned int value) {
-	void *ptr;
-	int write, endian;
+	uint8_t *ptr;
+	int write;
 
-	ptr = mem_decode_addr(address, &write, &endian);
-	//if (endian)
+	ptr = mem_decode_addr(address, &write);
 	if (!write) {
 		if ((address & 0xF0000000) == 0x20000000)
 			return chipset_write_io(address, value);
@@ -137,8 +131,10 @@ void m68k_write_memory_32(unsigned int address, unsigned int value) {
 		return;
 	}
 
-	value = ntohl(value);
-	*((uint32_t *) ptr) = value;
+	*ptr++ = value >> 24;
+	*ptr++ = value >> 16;
+	*ptr++ = value >> 8;
+	*ptr++ = value >> 0;
 }
 
 

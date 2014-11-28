@@ -11,6 +11,6 @@ struct Mem {
 
 
 void mem_init();
-void *mem_decode_addr(unsigned int address, int *write, int *endian);
+void *mem_decode_addr(unsigned int address, int *write);
 
 #endif

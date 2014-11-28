@@ -3,14 +3,13 @@
 #include "mem.h"
 #include "chipset.h"
 #include <SDL/SDL.h>
-#include <arpa/inet.h>
 
 
 void vga_init() {
-	int i, j;
+	int i;
 
-	vga_state.buff = mem_decode_addr(0x00000800, &i, &j);
-	vga_state.pal = mem_decode_addr(0x00000400, &i, &j);
+	vga_state.buff = mem_decode_addr(0x00000800, &i);
+	vga_state.pal = mem_decode_addr(0x00000400, &i);
 	
 	vga_state.screen = SDL_SetVideoMode(640, 480, 16, SDL_SWSURFACE);
 	vga_state.pixbuf = SDL_CreateRGBSurface(0, 640, 480, 16, 0xF800, 0x7E0, 0x1F, 0x0);
@@ -27,6 +26,7 @@ void vga_init() {
 
 
 void vga_render_line() {
+	uint8_t *ptr;
 	int i, ram_pos;
 	uint16_t pix;
 	uint16_t *next_pb = vga_state.pixbuf->pixels;
@@ -45,7 +45,9 @@ void vga_render_line() {
 	next_pb += (vga_state.line - 13) * 640;
 	
 	for (i = 0; i < 640; i++) {
-		pix = ntohs(vga_state.pal[vga_state.buff[ram_pos]]);
+		ptr = &vga_state.pal[vga_state.buff[ram_pos] * 2];
+		pix = ((*ptr++) << 8);
+		pix |= *ptr;
 		*next_pb = pix;
 		ram_pos++, next_pb++;
 		#ifdef VGA_WINDOW_SCROLL
