@@ -1,0 +1,3 @@
+[submodule "m68krash"]
+	path = m68krash
+	url = https://github.com/h4xxel/m68krash.git

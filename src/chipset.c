@@ -1,5 +1,4 @@
 #include "chipset.h"
-#include "m68k.h"
 #include "vga.h"
 
 
@@ -12,18 +11,18 @@ void chipset_int_set(int int_no, int set_unset) {
 
 	if (!interrupt[0]) {
 		fprintf(stderr, "interrupts not enabled\n");
-		m68k_set_irq(0);
+		//m68k_set_irq(0);
 		return;
 	} 
 
 	for (i = 0; i < 7; i++) {
 		if (interrupt[7-i]) {
-			m68k_set_irq(7 - i);
+			//m68k_set_irq(7 - i);
 			return;
 		}
 	}
 
-	m68k_set_irq(0);
+	//m68k_set_irq(0);
 }
 
 

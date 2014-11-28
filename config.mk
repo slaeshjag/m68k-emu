@@ -12,7 +12,7 @@ DBGFLAGS	=	-O0 -g -D__DEBUG__
 #General flags
 
 CFLAGS		+=	-Wall -I/usr/local/include/musashi
-LDFLAGS		+=	-lSDL -lmusashi
+LDFLAGS		+=	-lSDL -lpthread -lm
 PREFIX		=	/usr/local
 
 #Extra install targets

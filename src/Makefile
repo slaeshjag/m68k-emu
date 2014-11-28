@@ -7,8 +7,11 @@ OBJFILES	=	$(SRCFILES:.c=.o)
 .PHONY: all clean
 
 all: $(OBJFILES) $(DEPENDS)
+	@echo " [MAKE] cpu/"
+	@make -C cpu/
+	
 	@echo " [ LD ] $(BIN)"
-	@$(CC) $(CFLAGS) $(OBJFILES) -o $(BIN) $(LDFLAGS)
+	@$(CC) $(CFLAGS) $(OBJFILES) -o $(BIN) cpu/cpu.a $(LDFLAGS)
 	@echo "Done."
 	@echo
 	
@@ -19,7 +22,7 @@ clean:
 	@echo "Done."
 	@echo 
 
-%.o: %.c %.h
+%.o: %.c
 	@echo " [ CC ] src/$<"
 	@$(CC) $(CFLAGS) $(DBGFLAGS) -c -o $@ $<
 	

@@ -8,7 +8,7 @@
 struct VgaState vga_state;
 
 void vga_init() {
-	int i, j;
+	int i;
 
 	vga_state.buff = mem_decode_addr(0x00001800, &i, &j);
 	vga_state.pal = mem_decode_addr(0x00001400, &i, &j);
@@ -28,6 +28,7 @@ void vga_init() {
 
 
 void vga_render_line() {
+	uint8_t *ptr;
 	int i, ram_pos;
 	uint16_t pix;
 	uint16_t *next_pb = vga_state.pixbuf->pixels;
@@ -46,7 +47,9 @@ void vga_render_line() {
 	next_pb += (vga_state.line - 13) * 640;
 	
 	for (i = 0; i < 640; i++) {
-		pix = ntohs(vga_state.pal[vga_state.buff[ram_pos]]);
+		ptr = &vga_state.pal[vga_state.buff[ram_pos] * 2];
+		pix = ((*ptr++) << 8);
+		pix |= *ptr;
 		*next_pb = pix;
 		ram_pos++, next_pb++;
 		#ifdef VGA_WINDOW_SCROLL
