@@ -10,8 +10,8 @@ struct VgaState vga_state;
 void vga_init() {
 	int i;
 
-	vga_state.buff = mem_decode_addr(0x00001800, &i, &j);
-	vga_state.pal = mem_decode_addr(0x00001400, &i, &j);
+	vga_state.buff = mem_decode_addr(0x00001800, &i);
+	vga_state.pal = mem_decode_addr(0x00001400, &i);
 	
 	vga_state.screen = SDL_SetVideoMode(640, 480, 16, SDL_SWSURFACE);
 	vga_state.pixbuf = SDL_CreateRGBSurface(0, 640, 480, 16, 0xF800, 0x7E0, 0x1F, 0x0);

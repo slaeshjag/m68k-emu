@@ -1,7 +1,7 @@
 #include "spi.h"
 #include "sd.h"
 #include <stdint.h>
-
+#if 0
 enum SdState {
 	SD_STATE_NOCARD,
 	SD_STATE_UNINIT,
@@ -185,3 +185,4 @@ uint8_t spi_sd_send_recv(uint8_t byte) {
 
 	return 0xFF;
 }
+#endif

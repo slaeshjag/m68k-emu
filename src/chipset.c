@@ -4,9 +4,22 @@
 
 static int interrupt[8];
 
+int chipset_get_interrupt_level() {
+	int i;
+
+	if (!interrupt[0])
+		return 0;
+
+	for (i = 0; i < 7; i++)
+		if (interrupt[7-i])
+			return 7 - 1;
+	return 0;
+}
+
 
 void chipset_int_set(int int_no, int set_unset) {
 	int i;
+
 	interrupt[int_no] = set_unset;
 
 	if (!interrupt[0]) {
@@ -28,7 +41,7 @@ void chipset_int_set(int int_no, int set_unset) {
 
 void chipset_write_io(unsigned int addr, unsigned int data) {
 	addr &= 0xFC;
-	fprintf(stderr, "write_io %u %u\n", addr, data);
+	//fprintf(stderr, "write_io %u %u\n", addr, data);
 	if (!addr)		/* IRQ enable register */
 		return chipset_int_set(0, data & 1);
 	if (addr == 0x4)	/* VGA VSync acknowledge */

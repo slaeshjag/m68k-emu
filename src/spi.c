@@ -38,7 +38,7 @@ void spi_loop_one() {
 	} else if (line == 1) {
 	} else if (line == 2) {
 	} else if (line == 3) {
-		recv_byte = spi_sd_send_recv(send_byte);
+		//recv_byte = spi_sd_send_recv(send_byte);
 	}
 
 	if ((spi_state.reg & 01) && recv_byte == 0xFF)

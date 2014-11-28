@@ -16,7 +16,7 @@ struct VgaRegister {
 	unsigned short		sprite_y;
 };
 
-struct {
+struct VgaState {
 	uint8_t		*buff;
 	uint8_t		*pal;
 	int			line;
