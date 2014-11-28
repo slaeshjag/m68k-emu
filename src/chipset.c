@@ -2,6 +2,7 @@
 #include "m68k.h"
 #include "vga.h"
 
+
 static int interrupt[8];
 
 

@@ -15,7 +15,7 @@ struct VgaRegister {
 	unsigned short		sprite_y;
 };
 
-struct {
+struct VgaState {
 	unsigned char		*buff;
 	unsigned short		*pal;
 	int			line;
@@ -25,7 +25,9 @@ struct {
 	SDL_Surface		*screen;
 	SDL_Surface		*pixbuf;
 	int			ticks;
-} vga_state;
+};
 
+
+extern struct VgaState vga_state;
 
 #endif
