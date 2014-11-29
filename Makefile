@@ -5,7 +5,7 @@ MAKEFLAGS	+=	--no-print-directory
 TOPDIR		=	$(shell pwd)
 export TOPDIR
 
-.PHONY: all clean
+.PHONY: all clean os
 
 all:
 	@echo " [INIT] bin/"
@@ -20,6 +20,17 @@ all:
 	
 	@echo "Build complete."
 	@echo 
+
+os:
+	@echo " [ CD ] bootimg/"
+	+@make -C bootimg/
+	@echo " [ CD ] osloader/"
+	+@make -C osloader/
+	@cat $(OSFS) >> $(BOOTIMG)
+	
+	@echo "Build complete."
+	@echo 
+
 
 clean:
 	@echo " [ RM ] bin/"
