@@ -2,10 +2,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "mem.h"
+#include "chipset.h"
 #include "cpu/m68000.h"
 
 int get_interrupt_level(void) {
-	return 0;
+	return chipset_get_interrupt_level();
 }
 
 uint32_t get_long(uint32_t addr) {

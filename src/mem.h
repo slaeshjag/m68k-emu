@@ -13,6 +13,8 @@ struct Mem {
 void mem_init();
 void *mem_decode_addr(unsigned int address, int *write);
 
+extern struct Mem *mem;
+
 unsigned int m68k_read_memory_8(unsigned int address);
 unsigned int m68k_read_memory_16(unsigned int address);
 unsigned int m68k_read_memory_32(unsigned int address);

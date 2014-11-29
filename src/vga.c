@@ -3,13 +3,15 @@
 #include "mem.h"
 #include "chipset.h"
 #include <SDL/SDL.h>
+#include <arpa/inet.h>
 
+struct VgaState vga_state;
 
 void vga_init() {
 	int i;
 
-	vga_state.buff = mem_decode_addr(0x00000800, &i);
-	vga_state.pal = mem_decode_addr(0x00000400, &i);
+	vga_state.buff = mem_decode_addr(0x00001800, &i);
+	vga_state.pal = mem_decode_addr(0x00001400, &i);
 	
 	vga_state.screen = SDL_SetVideoMode(640, 480, 16, SDL_SWSURFACE);
 	vga_state.pixbuf = SDL_CreateRGBSurface(0, 640, 480, 16, 0xF800, 0x7E0, 0x1F, 0x0);
@@ -60,7 +62,7 @@ void vga_render_line() {
 
 	vga_state.line++;
 	if (vga_state.line == 525) {
-		chipset_int_set(ChipsetIntNumVGAVSync, 1);
+		chipset_int_set(CHIPSET_INT_NUM_VGA_VSYNC, 1);
 		
 		vga_state.line = 0;
 		SDL_BlitSurface(vga_state.pixbuf, NULL, vga_state.screen, NULL);

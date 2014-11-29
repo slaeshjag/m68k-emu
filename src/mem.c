@@ -6,20 +6,20 @@
 
 /* LLRAM Map								*
 ** 0x00000000 - 0x000003FF	Reserved for CPU vectors		*
-** 0x00000400 - 0x000007FF	Palette RAM				*
-** 0x00000800 - 0x0006709F	VGA framebuffer	(800x525)		*
-** 0x00067800 - 0x000678FF	Hardware sprite	(16x16)			*
-** 0x00068000 - 0x000687FF	Audio buffer 1 (20 ms)			*
-** 0x00068800 - 0x00068FFF	Audio buffer 2 (20 ms)			*
-** 0x00069000 - 0x000693FF	SPI 0 send buffer			*
-** 0x00069400 - 0x000697FF	SPI 0 recv buffer			*
-** 0x00069800 - 0x00069BFF	SPI 1 send buffer			*
-** 0x00069C00 - 0x00069FFF	SPI 1 recv buffer			*
-** 0x0006A000 - 0x0006A3FF	SPI 2 send buffer			*
-** 0x0006A400 - 0x0006A7FF	SPI 2 recv buffer			*
-** 0x0006A800 - 0x0006ABFF	SPI 3 send buffer			*
-** 0x0006AC00 - 0x0006AFFF	SPI 3 recv buffer			*
-** 0x0006B000 - 0x0007FFFF	Available				*/
+** 0x00001400 - 0x000017FF	Palette RAM				*
+** 0x00001800 - 0x0006809F	VGA framebuffer	(800x525)		*
+** 0x00068800 - 0x000688FF	Hardware sprite	(16x16)			*
+** 0x00069000 - 0x000697FF	Audio buffer 1 (20 ms)			*
+** 0x00069800 - 0x00069FFF	Audio buffer 2 (20 ms)			*
+** 0x0006A000 - 0x0006A3FF	SPI 0 send buffer			*
+** 0x0006A400 - 0x0006A7FF	SPI 0 recv buffer			*
+** 0x0006A800 - 0x0006ABFF	SPI 1 send buffer			*
+** 0x0006AC00 - 0x0006AFFF	SPI 1 recv buffer			*
+** 0x0006B000 - 0x0006B3FF	SPI 2 send buffer			*
+** 0x0006B400 - 0x0006B7FF	SPI 2 recv buffer			*
+** 0x0006B800 - 0x0006BBFF	SPI 3 send buffer			*
+** 0x0006BC00 - 0x0006BFFF	SPI 3 recv buffer			*
+** 0x0006C000 - 0x0007FFFF	Available				*/
 
 #include "mem.h"
 #include "chipset.h"
