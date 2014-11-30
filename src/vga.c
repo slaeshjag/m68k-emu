@@ -62,7 +62,7 @@ void vga_render_line() {
 
 	vga_state.line++;
 	if (vga_state.line == 525) {
-		chipset_int_set(ChipsetIntNumVGAVSync, 1);
+		chipset_int_set(CHIPSET_INT_NUM_VGA_VSYNC, 1);
 		
 		vga_state.line = 0;
 		SDL_BlitSurface(vga_state.pixbuf, NULL, vga_state.screen, NULL);

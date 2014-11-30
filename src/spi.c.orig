@@ -47,11 +47,17 @@ void spi_loop_one() {
 	if ((spi_state.reg & 010) && recv_byte == 0x0)
 		return;
 	spi_state.reg &= (~011);
+<<<<<<< HEAD
 	if (!spi_state.mem_counter) {
 		spi_state.reg = 0;
 		if (spi_state.line_select & 020)
-			chipset_int_set(CHIPSET_INT_NUM_SPI_DONE, 1);
+			chipset_int_set(ChipsetIntNumSPIDone, 1);
 	} else
+=======
+	if (!spi_state.mem_counter)
+		spi_state.reg = 0, chipset_int_set(CHIPSET_INT_NUM_SPI_DONE, 1);
+	else
+>>>>>>> 9f1dc72c73771c07bfbad35d3b77f1efacbf5db5
 		spi_state.mem_counter--;
 	if (spi_state.reg & 04)
 		*recv = recv_byte;

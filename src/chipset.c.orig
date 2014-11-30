@@ -43,6 +43,40 @@ void chipset_int_set(int int_no, int set_unset) {
 void chipset_write_io(unsigned int addr, unsigned int data) {
 	addr &= 0xFC;
 	//fprintf(stderr, "write_io %u %u\n", addr, data);
+<<<<<<< HEAD
+	if (!addr)		/* IRQ enable register */
+		return chipset_int_set(0, data & 1);
+	if (addr == 0x4)	/* VGA VSync acknowledge */
+		return chipset_int_set(ChipsetIntNumVGAVSync, 0);
+	if (addr == 0x8) {	/* VGA window scroll X */
+		vga_state.reg.window_x = data & 0x3FF;
+		return;
+	} if (addr == 0xC) {	/* VGA window scroll Y */
+		vga_state.reg.window_y = data & 0x3FF;
+		return;
+	} if (addr == 0x10) {	/* VGA sprite X */
+		vga_state.reg.sprite_x = data & 0x3FF;
+		return;
+	} if (addr == 0x14) {	/* VGA sprite Y */
+		vga_state.reg.sprite_y = data & 0x3FF;
+		return;
+	} if (addr == 0x20) {	/* SPI mem counter */
+		spi_state.mem_counter = data & 0x3FF;
+		return;
+	} if (addr == 0x24) {	/* SPI line select */
+		spi_state.line_select = data & 0x1F;
+		return;
+	} if (addr == 0x28) {	/* SPI status register */
+		spi_state.reg = data & 0xF;
+		return;
+	} if (addr == 0x2C) {	/* SPI interrupt acknowledge */
+		return chipset_int_set(ChipsetIntNumSPIDone, 0);
+	}
+
+	fprintf(stderr, "Wrote invalid IO-port 0x%X\n", addr);
+
+	return;
+=======
 	
 	switch(addr) {
 		case 0x0:
@@ -63,23 +97,8 @@ void chipset_write_io(unsigned int addr, unsigned int data) {
 		case 0x14:
 			vga_state.reg.sprite_y = data & 0x3FF;
 			return;
-		case 0x20:
-			spi_state.mem_counter = data & 0x3FF;
-			return;
-		case 0x24:
-			spi_state.line_select = data & 0x1F;
-			return;
-		case 0x28:
-			spi_state.reg = data & 0xF;
-			return;
-		case 0x2C:
-			chipset_int_set(CHIPSET_INT_NUM_SPI_DONE, 0);
-			return;
 	}
-
-	fprintf(stderr, "Wrote invalid IO-port 0x%X\n", addr);
-
-	return;
+>>>>>>> 9f1dc72c73771c07bfbad35d3b77f1efacbf5db5
 }
 
 
@@ -93,5 +112,4 @@ uint32_t chipset_read_io(unsigned int addr) {
 	}
 
 	fprintf(stderr, "Read invalid IO-port 0x%X\n", addr);
-	return 0xFFFFFFFF;
 }
