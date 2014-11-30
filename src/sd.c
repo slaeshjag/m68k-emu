@@ -1,7 +1,10 @@
 #include "spi.h"
 #include "sd.h"
 #include <stdint.h>
-#if 0
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 enum SdState {
 	SD_STATE_NOCARD,
 	SD_STATE_UNINIT,
@@ -14,72 +17,105 @@ enum SdSubState {
 	SD_SUBSTATE_CMD,
 	SD_SUBSTATE_WAIT_ACK,
 	SD_SUBSTATE_INVALID,
-	SD_SUBSTATE_SEND_REG;
-	SD_SUBSTATE_SEND_BLOCK;
+	SD_SUBSTATE_PROCESS,
+	SD_SUBSTATE_SEND_REG,
+	SD_SUBSTATE_SEND_BLOCK,
 };
 
 struct {
-	int		init_count;
 	enum SdState	state;
 	enum SdSubState	substate;
-	uint8_t		arg[32];
+	uint8_t		arg[1024];
 	int		args;
 	int		command;
 	int		acmd_start;
-	int		wait_cycles;
+
 	int		init_wait;
 
-	int		send_block;
-	int		send_count;
+	uint32_t	sdcard_size;
+	uint32_t	sdcard_multipl;
+	uint32_t	size_blocks;
 
-	int		sdcard_size;
-	int		sdcard_multipl;
-	int		size_blocks;
+	FILE		*fp;
 } sd_state;
 
 
-uint8_t spi_sd_send_recv(uint8_t byte) {
-	int n;
+void spi_sd_init(const char *sd_image) {
+	int i;
 
+	if (!(sd_state.fp = fopen(sd_image, "r+"))) {
+		fprintf(stderr, "No SD card installed\n");
+		sd_state.state = SD_STATE_NOCARD;
+		return;
+	}
+
+	sd_state.state = SD_STATE_UNINIT;
+	fseek(sd_state.fp, 0, SEEK_END);
+	sd_state.size_blocks = ftell(sd_state.fp);
+	rewind(sd_state.fp);
+	sd_state.size_blocks /= 512;
+	for (i = 0; i < 8; i++)
+		if (sd_state.size_blocks / (1 << (i + 2)) < 0x1000)
+			break;
+	if (i == 8) {
+		fprintf(stderr, "SD Card is too big\n");
+		fclose(sd_state.fp);
+		sd_state.state = SD_STATE_NOCARD;
+		return;
+	}
+
+	sd_state.sdcard_multipl = i;
+	sd_state.sdcard_size = sd_state.size_blocks / (1 << (i + 2)) - 1;
+
+	if ((sd_state.sdcard_size + 1) * (1 << (i + 2)) != sd_state.size_blocks) {
+		fprintf(stderr, "Warning: SD-card is of impossible size, using %i kB instead of %i\n", (sd_state.sdcard_size + 1) * (1 << (i + 2)) / 2, sd_state.size_blocks / 2);
+	}
+
+	fprintf(stderr, "SD card of size %i kB installed\n", (sd_state.sdcard_size + 1) * (1 << (i + 2)) / 2);
+}
+
+
+int spi_sd_check_enabled() {
 	if (sd_state.state == SD_STATE_NOCARD)
-		return 0xFF;
-	
-	/* Make sure that we're not selected and that the clock is slow */
-	if ((spi_state.line_select & 0x8) && (spi_state.line_select & 0x2)) {
-		sd_state.init_count++;
-	}
-
+		return 0;
 	if (!(spi_state.line_select & 0x8))
-		return 0xFF;
+		return 0;
+	return 1;
+}
 
-	if (sd_state.init_count < 74) {
-		sd_state.init_count = 0;
+
+uint8_t sd_idle_handler(uint8_t byte) {
+	if ((byte & 0xC0) != 0x40)
 		return 0xFF;
+	sd_state.command = byte & 0x3F;
+	if (sd_state.acmd_start)
+		sd_state.command |= 0x40, sd_state.acmd_start = 0;
+	sd_state.substate = SD_SUBSTATE_CMD;
+	return 0xFF;
+}
+
+
+uint8_t sd_read_command(uint8_t byte) {
+	sd_state.arg[sd_state.args++] = byte;
+	if (sd_state.args == 5) {
+		sd_state.substate = SD_SUBSTATE_PROCESS;
 	}
-	/* End of MMC mimicing */
+	
+	return 0xFF;
+}
+
+
+uint8_t spi_sd_send_recv(uint8_t byte) {
+	int n, i;
+
+	if (!spi_sd_check_enabled())
+		return 0xFF;
 
 	if (sd_state.substate == SD_SUBSTATE_IDLE) {
-		if ((byte & 0xC0) != 0x40)
-			return 0xFF;
-		sd_state.command = byte & 0x3F;
-		if (sd_state.acmd_start)
-			sd_state.command |= 0x40, sd_state.acmd_start = 0;
-		sd_state.substate = SD_SUBSTATE_CMD;
-		return 0xFF;
+		return sd_idle_handler(byte);
 	} else if (sd_state.substate == SD_SUBSTATE_CMD) {
-		sd_state.arg[sd_state.args++] = byte;
-		if (sd_state.args == 5) {
-			sd_state.wait_cycles = rand() & 0x7;
-			sd_state.substate = SD_SUBSTATE_WAIT;
-		}
-		
-		return 0xFF;
-	} else if (sd_state.substate == SD_SUBSTATE_WAIT) {
-		if (sd_state.wait_cycles > 0) {
-			sd_state.wait_cycles--;
-			return 0xFF;
-		}
-		
+		return sd_read_command(byte);
+	} else if (sd_state.substate == SD_SUBSTATE_PROCESS) {
 		if (sd_state.command == 55) {
 			sd_state.acmd_start = 1;
 			sd_state.substate = SD_SUBSTATE_IDLE;
@@ -150,7 +186,7 @@ uint8_t spi_sd_send_recv(uint8_t byte) {
 				if (sd_state.arg[0] == 0x0 && sd_state.arg[1] == 0x0 && sd_state.arg[2] == 0x2 && sd_state.arg[3] == 0x0)
 					return 0x0;
 				return 0x40;
-			} else if (sd_state.command == 17 || sd_state.command == 18) {
+			} else if (sd_state.command == 17) {
 				n = sd_state.arg[0] << 24, n |= sd_state.arg[1] << 16;
 				n |= sd_state.arg[2] << 8, n |= sd_state.arg[3];
 				if (n & 0x1FF) {
@@ -158,16 +194,21 @@ uint8_t spi_sd_send_recv(uint8_t byte) {
 					return 0x60;
 				}
 
-				n >> 9;
+				n >>= 9;
 				if (n >= sd_state.size_blocks) {
 					sd_state.substate = SD_SUBSTATE_IDLE;
 					return 0x60;
 				}
 
-				sd_state.send_block = n;
-				sd_state.send_count = 0;
-				sd_state.substate = SD_SUBSTATE_SEND_BLOCK;
-				return 0x0;
+				fseek(sd_state.fp, n * 512, SEEK_SET);
+				sd_state.args = 540;
+				memset(sd_state.arg, 0xFF, 540);
+				sd_state.arg[530] = 0x0;
+				sd_state.arg[515] = 0xFE;
+				for (i = 0; i < 512; i++)
+					sd_state.arg[514 - i] = fgetc(sd_state.fp);
+				sd_state.substate = SD_SUBSTATE_SEND_REG;
+				return 0xFF;
 			} else {
 				sd_state.substate = SD_SUBSTATE_IDLE;
 				return 0x4;
@@ -185,4 +226,3 @@ uint8_t spi_sd_send_recv(uint8_t byte) {
 
 	return 0xFF;
 }
-#endif

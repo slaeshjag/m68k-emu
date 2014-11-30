@@ -33,12 +33,13 @@ void spi_loop_one() {
 		recv += spi_state.mem_counter;
 
 	send_byte = *send;
+	recv_byte = 0xFF;
 	if (!line) {
 
 	} else if (line == 1) {
 	} else if (line == 2) {
 	} else if (line == 3) {
-		//recv_byte = spi_sd_send_recv(send_byte);
+		recv_byte = spi_sd_send_recv(send_byte);
 	}
 
 	if ((spi_state.reg & 01) && recv_byte == 0xFF)
@@ -46,9 +47,11 @@ void spi_loop_one() {
 	if ((spi_state.reg & 010) && recv_byte == 0x0)
 		return;
 	spi_state.reg &= (~011);
-	if (!spi_state.mem_counter)
-		spi_state.reg = 0, chipset_int_set(ChipsetIntNumSPIDone, 1);
-	else
+	if (!spi_state.mem_counter) {
+		spi_state.reg = 0;
+		if (spi_state.line_select & 020)
+			chipset_int_set(ChipsetIntNumSPIDone, 1);
+	} else
 		spi_state.mem_counter--;
 	if (spi_state.reg & 04)
 		*recv = recv_byte;

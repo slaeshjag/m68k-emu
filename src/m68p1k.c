@@ -6,6 +6,8 @@
 #include "mem.h"
 #include "vga.h"
 #include "signal.h"
+#include "spi.h"
+#include "sd.h"
 
 void die(int arne) {
 	SDL_Quit();
@@ -24,6 +26,8 @@ int main(int argc, char **argv) {
 	pthread_t thread;
 	
 	signal(SIGINT, die);
+	if (argc >= 2)
+		spi_sd_init(argv[1]);
 	mem_init();
 	vga_init();
 	m68030_init();
@@ -34,6 +38,7 @@ int main(int argc, char **argv) {
 	
 	for (;;) {
 		vga_render_line();
+		spi_loop(800);
 	}
 
 

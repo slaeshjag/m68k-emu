@@ -1,6 +1,6 @@
 /* Memory map								*
 ** 0x00000000 - 0x0007FFFF	LLRAM					*
-** 0x00000000 - 0x0007FFFF	ROM					*
+** 0x00080000 - 0x000FFFFF	ROM					*
 ** 0x10000000 - 0x13FFFFFF	Main RAM				*
 ** 0x20000000 - 0x2FFFFFFF	Chipset control registers		*/
 
@@ -59,17 +59,22 @@ void *mem_decode_addr(unsigned int address, int *write) {
 unsigned int m68k_read_memory_8(unsigned int address) {
 	uint8_t *ptr;
 	int write;
+	uint32_t tmp;
 
 	ptr = mem_decode_addr(address, &write);
+	if (!write && (address & 0xF0000000) == 0x20000000)
+		tmp = chipset_read_io(address), ptr = (void *) &tmp;
 	return *ptr;
 }
 
 unsigned int m68k_read_memory_16(unsigned int address) {
 	uint8_t *ptr;
 	int write;
-	uint16_t data;
+	uint16_t data, tmp;
 	
 	ptr = mem_decode_addr(address, &write);
+	if (!write && (address & 0xF0000000) == 0x20000000)
+		tmp = chipset_read_io(address), ptr = (void *) &tmp;
 	data = ((*ptr) << 8) | ((*(ptr + 1)) << 0);
 	return data;
 }
@@ -77,8 +82,10 @@ unsigned int m68k_read_memory_16(unsigned int address) {
 unsigned int m68k_read_memory_32(unsigned int address) {
 	uint8_t *ptr;
 	int write;
-	uint32_t data;
+	uint32_t data, tmp;
 	ptr = mem_decode_addr(address, &write);
+	if (!write && (address & 0xF0000000) == 0x20000000)
+		tmp = chipset_read_io(address), ptr = (void *) &tmp;
 	data = ((*ptr) << 24) | ((*(ptr + 1)) << 16) | ((*(ptr + 2)) << 8) | ((*(ptr + 3)) << 0);
 	return data;
 }

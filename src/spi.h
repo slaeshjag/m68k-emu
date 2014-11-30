@@ -15,15 +15,18 @@ struct SpiState {
 	** Slave 2	- Not assigned							*
 	** Slave 3	- External SPI port						*
 	** bit 2	- Assert ~CS (if zero, all CS lines remain high)		*
-	** bit 3	- Slow mode (SPI-clock = 11.2896/8 MHz = 352.8 kHz)		*/
+	** bit 3	- Slow mode (SPI-clock = 11.2896/8 MHz = 352.8 kHz)		*
+	** bit 4	- Interrupt when done						*/
 	uint8_t			line_select;
 
 	/* bit 0	- Wait for non-0xFF recieved before decreasing mem_counter	*
 	** bit 1	- Send bytes (if zero, send from 0x0)				*
 	** bit 2	- Recieve bytes (if zero, discard all incoming bytes)		*
-	** bit 3	- Wait for non-0xFF recieved before decreasing mem_counter	*/
+	** bit 3	- Wait for non-0x00 recieved before decreasing mem_counter	*/
 	uint8_t			reg;
 };
+
+void spi_loop(int cycles);
 
 extern struct SpiState spi_state;
 
