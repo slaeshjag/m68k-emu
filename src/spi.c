@@ -14,13 +14,15 @@ int spi_get_divider() {
 }
 
 void spi_loop_one() {
-	uint8_t *send = mem->llram + 0x6A000;
-	uint8_t *recv = mem->llram + 0x6A400;
+	uint8_t *send = mem->llram + 0x78000;
+	uint8_t *recv = mem->llram + 0x7C000;
 	uint8_t send_byte, recv_byte, line;
 
-	line = spi_state.line_select & 03,
-	send += line * 0x800;
-	recv += line * 0x800;
+	line = spi_state.line_select & 03;
+	if (spi_state.line_select & 040) {
+		send += 0x2000;
+		recv += 0x2000;
+	}
 	
 	if (!(spi_state.reg & 06)) {
 		/* Neither send nor revieve.. */

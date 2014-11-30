@@ -11,15 +11,11 @@
 ** 0x00068800 - 0x000688FF	Hardware sprite	(16x16)			*
 ** 0x00069000 - 0x000697FF	Audio buffer 1 (20 ms)			*
 ** 0x00069800 - 0x00069FFF	Audio buffer 2 (20 ms)			*
-** 0x0006A000 - 0x0006A3FF	SPI 0 send buffer			*
-** 0x0006A400 - 0x0006A7FF	SPI 0 recv buffer			*
-** 0x0006A800 - 0x0006ABFF	SPI 1 send buffer			*
-** 0x0006AC00 - 0x0006AFFF	SPI 1 recv buffer			*
-** 0x0006B000 - 0x0006B3FF	SPI 2 send buffer			*
-** 0x0006B400 - 0x0006B7FF	SPI 2 recv buffer			*
-** 0x0006B800 - 0x0006BBFF	SPI 3 send buffer			*
-** 0x0006BC00 - 0x0006BFFF	SPI 3 recv buffer			*
-** 0x0006C000 - 0x0007FFFF	Available				*/
+** 0x0006A000 - 0x00077FFF	Available				*
+** 0x00078000 - 0x00079FFF	SPI send buffer 0			*
+** 0x0007A000 - 0x0007BFFF	SPI send buffer 1			*
+** 0x0007C000 - 0x0007DFFF	SPI recv buffer 0			*
+** 0x0007E000 - 0x0007FFFF	SPI recv buffer 1			*/
 
 #include "mem.h"
 #include "chipset.h"

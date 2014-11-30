@@ -16,7 +16,8 @@ struct SpiState {
 	** Slave 3	- External SPI port						*
 	** bit 2	- Assert ~CS (if zero, all CS lines remain high)		*
 	** bit 3	- Slow mode (SPI-clock = 11.2896/8 MHz = 352.8 kHz)		*
-	** bit 4	- Interrupt when done						*/
+	** bit 4	- Interrupt when done						*
+	** bit 5	- Memory bank select (bank 0/1)					*/
 	uint8_t			line_select;
 
 	/* bit 0	- Wait for non-0xFF recieved before decreasing mem_counter	*
