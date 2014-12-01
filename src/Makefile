@@ -17,6 +17,8 @@ all: $(OBJFILES) $(DEPENDS)
 	
 clean:
 	@echo
+	@echo " [CLEAN] cpu/"
+	@make -C cpu/ clean
 	@echo " [ RM ] $(OBJFILES)"
 	@$(RM) $(OBJFILES)
 	@echo "Done."

@@ -24,7 +24,7 @@ void chipset_int_set(int int_no, int set_unset) {
 	interrupt[int_no] = set_unset;
 
 	if (!interrupt[0]) {
-		fprintf(stderr, "interrupts not enabled\n");
+		//fprintf(stderr, "interrupts not enabled\n");
 		//m68k_set_irq(0);
 		return;
 	} 

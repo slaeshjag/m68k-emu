@@ -1,14 +1,31 @@
 .text
-.org 0x100
 
-.global mmu_enable
+hej:	.long 0xDEADBEEF
+
+.global mmu_get_physical
+mmu_get_physical:
+	link %fp, #-4
+	pmove %tc, -4(%fp)
+	ori.l #0x80000000, -4(%fp)
+	pmove -4(%fp), %tc
+	mov.l 8(%fp), %a1
+	ptestr #6, (%a1), #7, %a0
+	andi.l #0x7FFFFFFF, -4(%fp)
+	pmove -4(%fp), %tc
+	mov.l (%a0), %d0
+	andi.l #0xFFFFFF00, %d0
+	unlk %fp
+	rts
+
+.global mmu_enable_and_jump
 mmu_enable_and_jump:
 	link %fp, #-4
 	pmove %tc, -4(%fp)
 	ori.l #0x80000000, -4(%fp)
 	pmove -4(%fp), %tc
+	move.l 8(%fp), %a0
 	move.l #0x0, %sp
-	jmp 8(%fp)
+	jmp (%a0)
 
 .global mmu_set_tc
 mmu_set_tc:
