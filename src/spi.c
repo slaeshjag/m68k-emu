@@ -3,6 +3,7 @@
 #include "sd.h"
 #include "chipset.h"
 #include <stdint.h>
+#include <stdio.h>
 
 
 struct SpiState spi_state;
@@ -22,6 +23,7 @@ void spi_loop_one() {
 	if (spi_state.line_select & 040) {
 		send += 0x2000;
 		recv += 0x2000;
+		fprintf(stderr, "Bank 2\n");
 	}
 	
 	if (!(spi_state.reg & 06)) {
@@ -37,7 +39,7 @@ void spi_loop_one() {
 	send_byte = *send;
 	recv_byte = 0xFF;
 	if (!line) {
-
+		recv_byte = spi_sd_send_recv(send_byte);
 	} else if (line == 1) {
 	} else if (line == 2) {
 	} else if (line == 3) {
@@ -49,14 +51,15 @@ void spi_loop_one() {
 	if ((spi_state.reg & 010) && recv_byte == 0x0)
 		return;
 	spi_state.reg &= (~011);
+	
+	if (spi_state.reg & 04)
+		*recv = recv_byte;
 	if (!spi_state.mem_counter) {
 		spi_state.reg = 0;
 		if (spi_state.line_select & 020)
 			chipset_int_set(CHIPSET_INT_NUM_SPI_DONE, 1);
 	} else
 		spi_state.mem_counter--;
-	if (spi_state.reg & 04)
-		*recv = recv_byte;
 	return;
 }
 

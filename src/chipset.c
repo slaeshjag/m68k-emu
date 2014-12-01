@@ -12,8 +12,9 @@ int chipset_get_interrupt_level() {
 		return 0;
 
 	for (i = 0; i < 7; i++)
-		if (interrupt[7-i])
-			return 7 - 1;
+		if (interrupt[7-i]) {
+			return 7 - i;
+		}
 	return 0;
 }
 
@@ -87,7 +88,7 @@ uint32_t chipset_read_io(unsigned int addr) {
 	addr &= 0xFC;
 	
 	if (addr == 0x24) {
-		return spi_state.reg & 0x1F;
+		return spi_state.line_select & 0x1F;
 	} if (addr == 0x28) {
 		return spi_state.reg & 0xF;
 	}
