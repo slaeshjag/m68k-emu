@@ -31,6 +31,14 @@ os:
 	@echo "Build complete."
 	@echo 
 
+clean-os: 
+	@echo " [ CD ] bootimg/"
+	+@make -C bootimg/ clean
+	@echo " [ CD ] osloader/"
+	+@make -C osloader/ clean
+	@echo
+	@echo "Source tree cleaned."
+	@echo
 
 clean:
 	@echo " [ RM ] bin/"

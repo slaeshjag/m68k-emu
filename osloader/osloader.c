@@ -1,3 +1,4 @@
+#include <limits.h>
 #include "terminal.h"
 #include "printf.h"
 #include "mmu.h"
@@ -9,10 +10,10 @@ int _start(int argc, char **argv) {
 	terminal_puts("Hello from osloader.elf!\n");
 	printf("Arne %.8i '%s'\n", 42, "lol");
 	
-	mmu_init();
 	
-	int_init();
+	mmu_init();
 	for (;;);
+	int_init();
 
 	return 42;
 }
