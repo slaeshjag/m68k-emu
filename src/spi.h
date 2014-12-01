@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 
+/* Den blingigaste SPI-hårdvaran i stan! */
 struct SpiState {
 	/* Internal state only, not needed in hardware */
 	unsigned int		spare_cycles;
