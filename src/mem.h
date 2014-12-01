@@ -10,7 +10,7 @@ struct Mem {
 };
 
 
-void mem_init();
+void mem_init(const char *filename);
 void *mem_decode_addr(unsigned int address, int *write);
 
 extern struct Mem *mem;

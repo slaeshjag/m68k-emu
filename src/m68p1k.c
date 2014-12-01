@@ -25,10 +25,16 @@ int main(int argc, char **argv) {
 	pthread_attr_t attr;
 	pthread_t thread;
 	
+	if(argc < 2) {
+		fprintf(stderr, "Usage: m68k <bootimg.img>\n");
+		return 1;
+	}
+
+
 	signal(SIGINT, die);
 	if (argc >= 2)
 		spi_sd_init(argv[1]);
-	mem_init();
+	mem_init(argv[1]);
 	vga_init();
 	m68030_init();
 	m68030_reset(true);

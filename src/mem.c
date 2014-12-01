@@ -139,7 +139,7 @@ void m68k_write_memory_32(unsigned int address, unsigned int value) {
 }
 
 
-void mem_init() {
+void mem_init(const char *filename) {
 	FILE *fp;
 	size_t sz;
 
@@ -150,7 +150,11 @@ void mem_init() {
 	mem->mram = malloc(1024*1024*64);
 	mem->rom_active = 1;
 
-	fp = fopen("bin/boot.rom", "r");
+	fp = fopen(filename, "r");
+	if(!fp) {
+		fprintf(stderr, "Error: could not open rom image\n");
+		exit(1);
+	}
 	fseek(fp, 0, SEEK_END);
 	sz = ftell(fp);
 	rewind(fp);

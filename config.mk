@@ -3,9 +3,8 @@
 
 TARGETCC	?=	m68k-elf-gcc
 TARGETAS	?=	m68k-elf-as
-BIN		=	$(TOPDIR)/bin/emu.elf
-BOOTIMG		=	$(TOPDIR)/bin/boot.rom
-OSFS		=	$(TOPDIR)/bin/os.rom
+PREFIX		?=	/usr/local
+BIN		=	$(TOPDIR)/bin/m68k-emu
 
 DBGFLAGS	=	-O0 -g -D__DEBUG__
 #DBGFLAGS	=	-O3 -g
