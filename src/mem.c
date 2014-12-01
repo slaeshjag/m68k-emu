@@ -39,7 +39,7 @@ void *mem_decode_addr(unsigned int address, int *write) {
 
 	if (address >= 0x1000000 && address < 0x5000000)
 		return mem->mram + (address - 0x1000000);
-	if ((address & 0xF0000000) == 0x20000000) {
+	if ((address & 0xFFF00000) == 0x200000) {
 		/* Dummy value */
 		*write = 0;
 		return mem->llram;
@@ -56,7 +56,7 @@ unsigned int m68k_read_memory_8(unsigned int address) {
 	uint32_t tmp;
 
 	ptr = mem_decode_addr(address, &write);
-	if (!write && (address & 0xF0000000) == 0x20000000)
+	if (!write && (address & 0xFFF00000) == 0x200000)
 		tmp = chipset_read_io(address), ptr = (void *) &tmp;
 	return *ptr;
 }
@@ -67,9 +67,10 @@ unsigned int m68k_read_memory_16(unsigned int address) {
 	uint16_t data, tmp;
 	
 	ptr = mem_decode_addr(address, &write);
-	if (!write && (address & 0xF0000000) == 0x20000000)
-		tmp = chipset_read_io(address), ptr = (void *) &tmp;
-	data = ((*ptr) << 8) | ((*(ptr + 1)) << 0);
+	if (!write && (address & 0xFFF00000) == 0x200000)
+		data = chipset_read_io(address), ptr = (void *) &tmp;
+	else
+		data = ((*ptr) << 8) | ((*(ptr + 1)) << 0);
 	return data;
 }
 
@@ -78,9 +79,10 @@ unsigned int m68k_read_memory_32(unsigned int address) {
 	int write;
 	uint32_t data, tmp;
 	ptr = mem_decode_addr(address, &write);
-	if (!write && (address & 0xF0000000) == 0x20000000)
-		tmp = chipset_read_io(address), ptr = (void *) &tmp;
-	data = ((*ptr) << 24) | ((*(ptr + 1)) << 16) | ((*(ptr + 2)) << 8) | ((*(ptr + 3)) << 0);
+	if (!write && (address & 0xFFF00000) == 0x200000)
+		data = chipset_read_io(address), ptr = (void *) &tmp;
+	else
+		data = ((*ptr) << 24) | ((*(ptr + 1)) << 16) | ((*(ptr + 2)) << 8) | ((*(ptr + 3)) << 0);
 	return data;
 }
 
@@ -90,7 +92,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
 	ptr = mem_decode_addr(address, &write);
 	
 	if (!write) {
-		if ((address & 0xF0000000) == 0x20000000)
+		if ((address & 0xFFF00000) == 0x200000)
 			return chipset_write_io(address, value);
 		if (address == 0xFFFFFFFF)
 			fprintf(stdout, "%c", (char) value);
@@ -109,7 +111,7 @@ void m68k_write_memory_16(unsigned int address, unsigned int value) {
 
 	ptr = mem_decode_addr(address, &write);
 	if (!write) {
-		if ((address & 0xF0000000) == 0x20000000)
+		if ((address & 0xFFF00000) == 0x200000)
 			return chipset_write_io(address, value);
 		fprintf(stderr, "Invalid write to %X\n", address);
 		return;
@@ -126,7 +128,7 @@ void m68k_write_memory_32(unsigned int address, unsigned int value) {
 
 	ptr = mem_decode_addr(address, &write);
 	if (!write) {
-		if ((address & 0xF0000000) == 0x20000000)
+		if ((address & 0xFFF00000) == 0x200000)
 			return chipset_write_io(address, value);
 		fprintf(stderr, "Invalid write to %X\n", address);
 		return;
