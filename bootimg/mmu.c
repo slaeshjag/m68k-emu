@@ -12,7 +12,7 @@
 uint32_t allocated_frames;
 
 struct {
-	MmuDescriptorShort page_table[1024]  ;
+	MmuDescriptorShort page_table[1024];
 	MmuDescriptorShort text[1024];
 	MmuDescriptorShort data[1024];
 	MmuDescriptorShort stack[1024];
@@ -29,7 +29,7 @@ void mmu_init() {
 		.enable = false,
 	};
 	MmuRegTransparentTranslation tt0 = {
-		.function_code_mask = 0x7,
+		.function_code_mask = 0x3,
 		.function_code_base = 0x4,
 		.read_write_mask = 0x1,
 		.read_write = 0x0,
@@ -55,7 +55,7 @@ void mmu_init() {
 }
 
 void *mmu_allocate_frame(uint32_t virtual_address, MmuKernelSegment segment, uint32_t count) {
-	bool write_protect = false;
+	bool write_protect = (segment == MMU_KERNEL_SEGMENT_TEXT);
 	uint32_t table_number = virtual_address / (4096*1024);
 	uint32_t descriptor_number = (virtual_address/4096) % (1024);
 	uint32_t page_address = MMU_LOGIAL_START + (4096*allocated_frames);
