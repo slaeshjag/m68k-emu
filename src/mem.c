@@ -40,14 +40,15 @@ void *mem_decode_addr(unsigned int address, int *write) {
 	if (address < 0x100000) {
 		*write = 0;
 		return mem->rom + (address - 0x80000);
-	} if (address >= 0x10000000 && address <= 0x13FFFFFF)
-		return mem->mram + (address - 0x10000000);
+	} if (address >= 0x1000000 && address < 0x5000000)
+		return mem->mram + (address - 0x1000000);
 	if ((address & 0xF0000000) == 0x20000000) {
 		/* Dummy value */
 		*write = 0;
 		return mem->llram;
 	}
 	fprintf(stderr, "ERROR: Invalid address %X\n", address);
+	fflush(stdout);
 	exit(-1);
 }
 

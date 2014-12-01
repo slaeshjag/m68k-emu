@@ -1,7 +1,6 @@
 #include <stdint.h>
 #include <stdbool.h>
-#include "printf.h"
-#include "terminal.h"
+#include "boot_term.h"
 #include "mmu.h"
 
 /** This is probably not nessecary for the bootloader, since we won'd deallocate frames.
@@ -13,10 +12,10 @@
 uint32_t allocated_frames;
 
 struct {
-	MmuDescriptorShort page_table[1024];
-	MmuDescriptorShort text[1024];
-	MmuDescriptorShort data[1024];
-	MmuDescriptorShort stack[1024];
+	MmuDescriptorShort page_table[1024]  __attribute__ ((aligned (16)));
+	MmuDescriptorShort text[1024]  __attribute__ ((aligned (16)));
+	MmuDescriptorShort data[1024]  __attribute__ ((aligned (16)));
+	MmuDescriptorShort stack[1024]  __attribute__ ((aligned (16)));
 } supervisor;
 
 void mmu_init() {
@@ -26,10 +25,11 @@ void mmu_init() {
 		.table_indices_a = 10, /*1024 entries * 4 byte/entry = 4k*/
 		.table_indices_b = 10,
 		.supervisor_root_pointer = true,
+		.function_code_lookup = false,
 		.enable = false,
 	};
 	MmuRegTransparentTranslation tt0 = {
-		.function_code_mask = 0x3,
+		.function_code_mask = 0x7,
 		.function_code_base = 0x4,
 		.read_write_mask = 0x1,
 		.read_write = 0x0,
@@ -111,9 +111,7 @@ void *mmu_allocate_frame(uint32_t virtual_address, MmuKernelSegment segment, uin
 }
 
 void mmu_bus_error() {
-	terminal_set_bg(TERMINAL_COLOR_RED);
-	terminal_set_fg(TERMINAL_COLOR_WHITE);
-	terminal_puts("PANIC: bus error");
+	term_puts("PANIC: bus error", 4);
 	
 	for(;;);
 }

@@ -1,14 +1,40 @@
 .text
-.org 0x100
 
-.global mmu_enable
-mmu_enable_and_jump:
+hej:	.long 0x82C0AA00
+
+.global mmu_get_physical
+mmu_get_physical:
 	link %fp, #-4
 	pmove %tc, -4(%fp)
 	ori.l #0x80000000, -4(%fp)
 	pmove -4(%fp), %tc
+	#move.l #0x4E020, %a0
+	#ptestr #6, (%a0), #7, %a0
+	move.l hej, %a1
+	move.l (%a1), %d0
+	ost:
+	bra ost
+	pmove (%a1), %tc
+	unlk %fp
+	rts
+
+.global mmu_enable_and_jump
+mmu_enable_and_jump:
+	link %fp, #-4
+	
+	pmove %tc, -4(%fp)
+	ori.l #0x80000000, -4(%fp)
+	pmove -4(%fp), %tc
+	#move.l 8(%fp), %a0
+	
+	
+	move.l #0x1000048, %a0
+	ptestr #5, (%a0), #7, %a0
+	arne:
+	bra arne
+	move.l #0x1000048, %a0
 	move.l #0x0, %sp
-	jmp 8(%fp)
+	jmp (%a0)
 
 .global mmu_set_tc
 mmu_set_tc:
