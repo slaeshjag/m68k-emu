@@ -32,8 +32,8 @@ int main(int argc, char **argv) {
 
 
 	signal(SIGINT, die);
-	if (argc >= 2)
-		spi_sd_init(argv[1]);
+	if (argc >= 3)
+		spi_sd_init(argv[2]);
 	mem_init(argv[1]);
 	vga_init();
 	m68030_init();
