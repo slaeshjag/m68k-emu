@@ -71,14 +71,14 @@ void spi_sd_init(const char *sd_image) {
 		fprintf(stderr, "Warning: SD-card is of impossible size, using %i kB instead of %i\n", (sd_state.sdcard_size + 1) * (1 << (i + 2)) / 2, sd_state.size_blocks / 2);
 	}
 
-	fprintf(stderr, "SD card of size %i kB installed\n", (sd_state.sdcard_size + 1) * (1 << (i + 2)) / 2);
+	fprintf(stderr, "SD card of size %i kB installed (%i %i)\n", (sd_state.sdcard_size + 1) * (1 << (i + 2)) / 2, sd_state.sdcard_size, sd_state.sdcard_multipl);
 }
 
 
 int spi_sd_check_enabled() {
 	if (sd_state.state == SD_STATE_NOCARD)
 		return 0;
-	if (!(spi_state.line_select & 0x8))
+	if (!(spi_state.line_select & 0x4))
 		return 0;
 	return 1;
 }
@@ -90,6 +90,7 @@ uint8_t sd_idle_handler(uint8_t byte) {
 	sd_state.command = byte & 0x3F;
 	if (sd_state.acmd_start)
 		sd_state.command |= 0x40, sd_state.acmd_start = 0;
+	sd_state.args = 0;
 	sd_state.substate = SD_SUBSTATE_CMD;
 	return 0xFF;
 }
@@ -98,6 +99,7 @@ uint8_t sd_idle_handler(uint8_t byte) {
 uint8_t sd_read_command(uint8_t byte) {
 	sd_state.arg[sd_state.args++] = byte;
 	if (sd_state.args == 5) {
+		fprintf(stderr, "Command %i\n", sd_state.command);
 		sd_state.substate = SD_SUBSTATE_PROCESS;
 	}
 	
@@ -110,7 +112,6 @@ uint8_t spi_sd_send_recv(uint8_t byte) {
 
 	if (!spi_sd_check_enabled())
 		return 0xFF;
-
 	if (sd_state.substate == SD_SUBSTATE_IDLE) {
 		return sd_idle_handler(byte);
 	} else if (sd_state.substate == SD_SUBSTATE_CMD) {
@@ -139,14 +140,14 @@ uint8_t spi_sd_send_recv(uint8_t byte) {
 				sd_state.substate = SD_SUBSTATE_IDLE;
 				return 0x1;
 			} else if (sd_state.command == 105) {	/* ACMD41 (init) */
-				if (--sd_state.init_wait == 0) {
+			//	if (--sd_state.init_wait == 0) {
 					sd_state.state = SD_STATE_INIT;
 					sd_state.substate = SD_SUBSTATE_IDLE;
 					return 0x0;
-				} else {
-					sd_state.substate = SD_SUBSTATE_IDLE;
-					return 0x1;
-				}
+			//	} else {
+			//		sd_state.substate = SD_SUBSTATE_IDLE;
+			//		return 0x1;
+			//	}
 			} else {
 				sd_state.substate = SD_SUBSTATE_IDLE;
 				return 0x5;
@@ -164,7 +165,8 @@ uint8_t spi_sd_send_recv(uint8_t byte) {
 				sd_state.arg[2] = 0xFF;
 				sd_state.arg[1] = sd_state.arg[0] = 0x0;
 				return 0x0;
-			} else if (sd_state.command == 8) {	/* Read CSD */
+			} else if (sd_state.command == 9) {	/* Read CSD */
+				fprintf(stderr, "READ CSD\n");
 				sd_state.substate = SD_SUBSTATE_SEND_REG;
 				sd_state.args = 20;
 				sd_state.arg[19] = 0xFF, sd_state.arg[18] = 0xFE;
@@ -210,6 +212,7 @@ uint8_t spi_sd_send_recv(uint8_t byte) {
 				sd_state.substate = SD_SUBSTATE_SEND_REG;
 				return 0xFF;
 			} else {
+				fprintf(stderr, "Invalid command %i\n", sd_state.command);
 				sd_state.substate = SD_SUBSTATE_IDLE;
 				return 0x4;
 			}
