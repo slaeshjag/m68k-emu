@@ -1,4 +1,5 @@
 #include "chipset.h"
+#include "mem.h"
 #include "vga.h"
 #include "spi.h"
 
@@ -99,6 +100,9 @@ uint32_t chipset_read_io(unsigned int addr) {
 		case CHIPSET_IO_PORT_NUMBER_IRQ_ACK_VGA:
 			return 0x0;
 		*/
+		
+		case CHIPSET_IO_PORT_GET_RAM_SIZE:
+			return MEM_SIZE;
 			
 		case CHIPSET_IO_PORT_VGA_WINDOW_X:
 			return vga_state.reg.window_x  & 0x3FF;

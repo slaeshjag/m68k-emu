@@ -149,7 +149,7 @@ void mem_init(const char *filename) {
 
 	mem->llram = malloc(1024*512);
 	mem->rom = malloc(1024*512);
-	mem->mram = malloc(1024*1024*64);
+	mem->mram = malloc(MEM_SIZE);
 	mem->rom_active = 1;
 
 	fp = fopen(filename, "r");

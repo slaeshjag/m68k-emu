@@ -1,6 +1,8 @@
 #ifndef __MEM_H__
 #define	__MEM_H__
 
+#define MEM_SIZE (1024*1024*64)
+
 struct Mem {
 	void 			*llram;
 	void			*mram;
