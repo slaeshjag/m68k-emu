@@ -17,6 +17,7 @@
 ** 0x0007C000 - 0x0007DFFF	SPI recv buffer 0			*
 ** 0x0007E000 - 0x0007FFFF	SPI recv buffer 1			*/
 
+#include "cpu/m68000.h"
 #include "mem.h"
 #include "chipset.h"
 #include <stdio.h>
@@ -45,8 +46,7 @@ void *mem_decode_addr(unsigned int address, int *write) {
 		return mem->llram;
 	}
 	fprintf(stderr, "ERROR: Invalid address %X\n", address);
-	fflush(stdout);
-	exit(-1);
+	return NULL;
 }
 
 
@@ -55,7 +55,10 @@ unsigned int m68k_read_memory_8(unsigned int address) {
 	int write;
 	uint32_t tmp;
 
-	ptr = mem_decode_addr(address, &write);
+	if (!(ptr = mem_decode_addr(address, &write))) {
+		M68000_BusError(address, BUS_ERROR_READ);
+		return 0;
+	}
 	if (!write && (address & 0xFFF00000) == 0x200000)
 		tmp = chipset_read_io(address), ptr = (void *) &tmp;
 	return *ptr;
@@ -66,7 +69,10 @@ unsigned int m68k_read_memory_16(unsigned int address) {
 	int write;
 	uint16_t data, tmp;
 	
-	ptr = mem_decode_addr(address, &write);
+	if (!(ptr = mem_decode_addr(address, &write))) {
+		M68000_BusError(address, BUS_ERROR_READ);
+		return 0;
+	}
 	if (!write && (address & 0xFFF00000) == 0x200000)
 		data = chipset_read_io(address), ptr = (void *) &tmp;
 	else
@@ -78,7 +84,10 @@ unsigned int m68k_read_memory_32(unsigned int address) {
 	uint8_t *ptr;
 	int write;
 	uint32_t data, tmp;
-	ptr = mem_decode_addr(address, &write);
+	if (!(ptr = mem_decode_addr(address, &write))) {
+		M68000_BusError(address, BUS_ERROR_READ);
+		return 0;
+	}
 	if (!write && (address & 0xFFF00000) == 0x200000)
 		data = chipset_read_io(address), ptr = (void *) &tmp;
 	else
@@ -89,7 +98,10 @@ unsigned int m68k_read_memory_32(unsigned int address) {
 void m68k_write_memory_8(unsigned int address, unsigned int value) {
 	uint8_t *ptr;
 	int write;
-	ptr = mem_decode_addr(address, &write);
+	if (!(ptr = mem_decode_addr(address, &write))) {
+		M68000_BusError(address, BUS_ERROR_WRITE);
+		return;
+	}
 	
 	if (!write) {
 		if ((address & 0xFFF00000) == 0x200000)
@@ -109,7 +121,10 @@ void m68k_write_memory_16(unsigned int address, unsigned int value) {
 	uint8_t *ptr;
 	int write;
 
-	ptr = mem_decode_addr(address, &write);
+	if (!(ptr = mem_decode_addr(address, &write))) {
+		M68000_BusError(address, BUS_ERROR_WRITE);
+		return;
+	}
 	if (!write) {
 		if ((address & 0xFFF00000) == 0x200000)
 			return chipset_write_io(address, value);
@@ -126,7 +141,10 @@ void m68k_write_memory_32(unsigned int address, unsigned int value) {
 	uint8_t *ptr;
 	int write;
 
-	ptr = mem_decode_addr(address, &write);
+	if (!(ptr = mem_decode_addr(address, &write))) {
+		M68000_BusError(address, BUS_ERROR_WRITE);
+		return;
+	}
 	if (!write) {
 		if ((address & 0xFFF00000) == 0x200000)
 			return chipset_write_io(address, value);
