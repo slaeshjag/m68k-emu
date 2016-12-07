@@ -43,7 +43,7 @@ void chipset_int_set(int int_no, int set_unset) {
 
 
 void chipset_write_io(unsigned int addr, unsigned int data) {
-	unsigned int port = (addr & 0xFC)/4;
+	unsigned int port = (addr & 0xFFC)/4;
 	//fprintf(stderr, "write_io %u %u\n", addr, data);
 	
 	switch(port) {
@@ -89,7 +89,7 @@ void chipset_write_io(unsigned int addr, unsigned int data) {
 
 
 uint32_t chipset_read_io(unsigned int addr) {
-	unsigned int port = (addr & 0xFC)/4;
+	unsigned int port = (addr & 0xFFC)/4;
 	
 	switch(port) {
 		/*
@@ -115,11 +115,12 @@ uint32_t chipset_read_io(unsigned int addr) {
 		
 		case CHIPSET_IO_PORT_SPI_MEM_COUNTER:
 			return spi_state.mem_counter & 0x3FF;
-			return;
 		case CHIPSET_IO_PORT_SPI_LINE_SELECT:
 			return spi_state.line_select & 0x1F;
 		case CHIPSET_IO_PORT_SPI_REG:
 			return spi_state.reg & 0xF;
+		case CHIPSET_IO_PORT_UART_READ:
+			return getchar();
 		
 		default:
 			fprintf(stderr, "Read invalid IO-port 0x%X\n", addr);	
