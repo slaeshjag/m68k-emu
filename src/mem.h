@@ -1,9 +1,12 @@
 #ifndef __MEM_H__
 #define	__MEM_H__
 
+#include <stdbool.h>
+
 #define MEM_SIZE (1024*1024*64)
 
 struct Mem {
+	bool			new_map;		// If true, use actual hardware map
 	void 			*llram;
 	void			*mram;
 	void			*rom;
@@ -12,7 +15,7 @@ struct Mem {
 };
 
 
-void mem_init(const char *filename);
+void mem_init(const char *filename, bool new_map);
 void *mem_decode_addr(unsigned int address, int *write);
 
 extern struct Mem *mem;

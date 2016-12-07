@@ -2,6 +2,7 @@
 #include "mem.h"
 #include "vga.h"
 #include "spi.h"
+#include "uart.h"
 #include "debug.h"
 
 
@@ -43,9 +44,33 @@ void chipset_int_set(int int_no, int set_unset) {
 }
 
 
-void chipset_write_io(unsigned int addr, unsigned int data) {
+void chipset_new_write_io(unsigned int addr, unsigned int data) {
+	if ((addr & 0xF00) == CHIPSET_IO_PORT_NEW_SPI_BASE) {
+		spi_new_handle_write(addr, data);
+	} else if ((addr & 0xF00) == CHIPSET_IO_PORT_NEW_UART_BASE) {
+		spi_new_handle_write(addr, data);
+	}
+}
+
+
+unsigned int chipset_new_read_io(unsigned int addr) {
+	if ((addr & 0xF00) == CHIPSET_IO_PORT_NEW_SPI_BASE) {
+		return spi_new_handle_read(addr);
+	} else if ((addr & 0xF00) == CHIPSET_IO_PORT_NEW_UART_BASE) {
+		return uart_handle_read(addr);
+	} else if ((addr & 0xF00) == CHIPSET_IO_PORT_NEW_EXTINT) {
+		return 0x1;
+	}
+
+	return ~0;
+}
+
+
+void chipset_write_io(unsigned int addr, unsigned int data, bool new_map) {
 	unsigned int port = (addr & 0xFFFC)/4;
 	//fprintf(stderr, "write_io %u 0x%X %u\n",port, addr, data);
+	if (new_map)
+		return chipset_new_write_io(addr, data);
 	
 	switch(port) {
 		case CHIPSET_IO_PORT_INTERRUPT_ENABLE:
@@ -93,8 +118,11 @@ void chipset_write_io(unsigned int addr, unsigned int data) {
 }
 
 
-uint32_t chipset_read_io(unsigned int addr) {
+uint32_t chipset_read_io(unsigned int addr, bool new_map) {
 	unsigned int port = (addr & 0xFFFC)/4;
+	
+	if (new_map)
+		return chipset_new_read_io(addr);
 	
 	switch(port) {
 		/*
@@ -120,7 +148,6 @@ uint32_t chipset_read_io(unsigned int addr) {
 		
 		case CHIPSET_IO_PORT_SPI_MEM_COUNTER:
 			return spi_state.mem_counter & 0x3FF;
-			return;
 		case CHIPSET_IO_PORT_SPI_LINE_SELECT:
 			return spi_state.line_select & 0x1F;
 		case CHIPSET_IO_PORT_SPI_REG:

@@ -2,10 +2,11 @@
 #define	__CHIPSET_H__
 
 #include <stdint.h>
+#include <stdbool.h>
 
 void chipset_int_set(int int_no, int set_unset);
-void chipset_write_io(unsigned int addr, unsigned int data);
-uint32_t chipset_read_io(unsigned int addr);
+void chipset_write_io(unsigned int addr, unsigned int data, bool new_map);
+uint32_t chipset_read_io(unsigned int addr, bool new_map);
 
 enum ChipsetIntNum {
 	CHIPSET_INT_NUM_SPI_DONE = 3,
@@ -13,6 +14,16 @@ enum ChipsetIntNum {
 	CHIPSET_INT_NUM_VGA_VSYNC,
 	CHIPSET_INT_NUM_AUDIO,
 };
+
+
+enum ChipsetIoPortNew {
+	CHIPSET_IO_PORT_NEW_SPI_BASE = 0x800,
+	CHIPSET_IO_PORT_NEW_UART_BASE = 0x900,
+	CHIPSET_IO_PORT_NEW_VGA_BASE = 0xA00,
+	CHIPSET_IO_PORT_NEW_SOUND_BASE = 0xB00,
+	CHIPSET_IO_PORT_NEW_EXTINT = 0xC00,
+};
+
 
 typedef enum ChipsetIoPort ChipsetIoPort;
 enum ChipsetIoPort {
@@ -34,9 +45,9 @@ enum ChipsetIoPort {
 	CHIPSET_IO_PORT_VGA_SPRITE_X,
 	CHIPSET_IO_PORT_VGA_SPRITE_Y,
 
-	CHIPSET_IO_PORT_UART_READ = 0x80
-	
 	CHIPSET_IO_PORT_DEBUG = 0x60,
+
+	CHIPSET_IO_PORT_UART_READ = 0x80,
 };
 
 #endif

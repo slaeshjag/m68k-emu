@@ -7,14 +7,21 @@
 
 struct VgaState vga_state;
 
-void vga_init() {
+void vga_init(bool new_mode) {
 	int i;
 
-	vga_state.buff = mem_decode_addr(0x00081800, &i);
-	vga_state.pal = mem_decode_addr(0x00081400, &i);
-	
-	vga_state.screen = SDL_SetVideoMode(640, 480, 16, SDL_SWSURFACE);
-	vga_state.pixbuf = SDL_CreateRGBSurface(0, 640, 480, 16, 0xF800, 0x7E0, 0x1F, 0x0);
+	if (!new_mode) {
+		vga_state.buff = mem_decode_addr(0x00081800, &i);
+		vga_state.pal = mem_decode_addr(0x00081400, &i);
+		vga_state.vga_width = 640;
+	} else {
+		vga_state.buff = mem_decode_addr(0x00080000, &i);
+		vga_state.pal = malloc(256*2);
+		vga_state.vga_width = 800;
+	}
+
+	vga_state.screen = SDL_SetVideoMode(vga_state.vga_width, 480, 16, SDL_SWSURFACE);
+	vga_state.pixbuf = SDL_CreateRGBSurface(0, vga_state.vga_width, 480, 16, 0xF800, 0x7E0, 0x1F, 0x0);
 
 	for (i = 0; i < 800*525; i++)
 		vga_state.buff[i] = 0;
@@ -42,9 +49,9 @@ void vga_render_line() {
 	ram_pos *= 800;
 	ram_pos += vga_state.reg.window_x;
 	#else
-	ram_pos = (vga_state.line - 13) * 640;
+	ram_pos = (vga_state.line - 13) * vga_state.vga_width;
 	#endif
-	next_pb += (vga_state.line - 13) * 640;
+	next_pb += (vga_state.line - 13) * vga_state.vga_width;
 	
 	for (i = 0; i < 640; i++) {
 		ptr = &vga_state.pal[vga_state.buff[ram_pos] * 2];

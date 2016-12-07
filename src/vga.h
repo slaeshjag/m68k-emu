@@ -2,11 +2,12 @@
 #define	__VGA_H__
 
 #include <stdint.h>
+#include <stdbool.h>
 #include <SDL/SDL.h>
 
 #define	VGA_WINDOW_SCROLL
 
-void vga_init();
+void vga_init(bool new_mode);
 void vga_render_line();
 
 struct VgaRegister {
@@ -17,6 +18,7 @@ struct VgaRegister {
 };
 
 struct VgaState {
+	int			vga_width;
 	uint8_t		*buff;
 	uint8_t		*pal;
 	int			line;

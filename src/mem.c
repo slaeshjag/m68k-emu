@@ -38,8 +38,13 @@ void *mem_decode_addr(unsigned int address, int *write) {
 		return mem->llram + (address - 0x80000);
 	}
 
-	if (address >= 0x1000000 && address < 0x5000000)
-		return mem->mram + (address - 0x1000000);
+	if (mem->new_map) {
+		if (address >= 0x80000000 && address < 0x84000000)
+			return mem->mram + (address - 0x80000000);
+	} else {
+		if (address >= 0x1000000 && address < 0x5000000)
+			return mem->mram + (address - 0x1000000);
+	}
 	if ((address & 0xFFF00000) == 0x200000) {
 		/* Dummy value */
 		*write = 0;
@@ -59,8 +64,15 @@ unsigned int m68k_read_memory_8(unsigned int address) {
 		M68000_BusError(address, BUS_ERROR_READ);
 		return 0;
 	}
-	if (!write && (address & 0xFFF00000) == 0x200000)
-		tmp = chipset_read_io(address), ptr = (void *) &tmp;
+
+	if (mem->new_map) {
+		if (!write && (address & 0xFFF00000) == 0x100000)
+			tmp = chipset_read_io(address, mem->new_map), ptr = (void *) &tmp;
+	} else {
+		if (!write && (address & 0xFFF00000) == 0x200000)
+			tmp = chipset_read_io(address, mem->new_map), ptr = (void *) &tmp;
+	}
+
 	return *ptr;
 }
 
@@ -73,10 +85,18 @@ unsigned int m68k_read_memory_16(unsigned int address) {
 		M68000_BusError(address, BUS_ERROR_READ);
 		return 0;
 	}
-	if (!write && (address & 0xFFF00000) == 0x200000)
-		data = chipset_read_io(address), ptr = (void *) &tmp;
-	else
-		data = ((*ptr) << 8) | ((*(ptr + 1)) << 0);
+
+	if (mem->new_map) {
+		if (!write && (address & 0xFFF00000) == 0x200000)
+			data = chipset_read_io(address, mem->new_map), ptr = (void *) &tmp;
+		else
+			data = ((*ptr) << 8) | ((*(ptr + 1)) << 0);
+	} else {
+		if (!write && (address & 0xFFF00000) == 0x100000)
+			data = chipset_read_io(address, mem->new_map), ptr = (void *) &tmp;
+		else
+			data = ((*ptr) << 8) | ((*(ptr + 1)) << 0);
+	}
 	return data;
 }
 
@@ -88,10 +108,17 @@ unsigned int m68k_read_memory_32(unsigned int address) {
 		M68000_BusError(address, BUS_ERROR_READ);
 		return 0;
 	}
-	if (!write && (address & 0xFFF00000) == 0x200000)
-		data = chipset_read_io(address), ptr = (void *) &tmp;
-	else
-		data = ((*ptr) << 24) | ((*(ptr + 1)) << 16) | ((*(ptr + 2)) << 8) | ((*(ptr + 3)) << 0);
+	if (mem->new_map) {
+		if (!write && (address & 0xFFF00000) == 0x100000)
+			data = chipset_read_io(address, mem->new_map), ptr = (void *) &tmp;
+		else
+			data = ((*ptr) << 24) | ((*(ptr + 1)) << 16) | ((*(ptr + 2)) << 8) | ((*(ptr + 3)) << 0);
+	} else {
+		if (!write && (address & 0xFFF00000) == 0x200000)
+			data = chipset_read_io(address, mem->new_map), ptr = (void *) &tmp;
+		else
+			data = ((*ptr) << 24) | ((*(ptr + 1)) << 16) | ((*(ptr + 2)) << 8) | ((*(ptr + 3)) << 0);
+	}
 	return data;
 }
 
@@ -104,8 +131,14 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
 	}
 	
 	if (!write) {
-		if ((address & 0xFFF00000) == 0x200000)
-			return chipset_write_io(address, value);
+		if (mem->new_map) {
+			if ((address & 0xFFF00000) == 0x100000)
+				return chipset_write_io(address, value, mem->new_map);
+		} else {
+			if ((address & 0xFFF00000) == 0x200000)
+				return chipset_write_io(address, value, mem->new_map);
+		}
+
 		if (address == 0xFFFFFFFF)
 			fprintf(stdout, "%c", (char) value);
 		else
@@ -126,8 +159,14 @@ void m68k_write_memory_16(unsigned int address, unsigned int value) {
 		return;
 	}
 	if (!write) {
-		if ((address & 0xFFF00000) == 0x200000)
-			return chipset_write_io(address, value);
+		if (mem->new_map) {
+			if ((address & 0xFFF00000) == 0x100000)
+				return chipset_write_io(address, value, mem->new_map);
+		} else {
+			if ((address & 0xFFF00000) == 0x200000)
+				return chipset_write_io(address, value, mem->new_map);
+		}
+
 		fprintf(stderr, "Invalid write to %X\n", address);
 		return;
 	}
@@ -146,8 +185,13 @@ void m68k_write_memory_32(unsigned int address, unsigned int value) {
 		return;
 	}
 	if (!write) {
-		if ((address & 0xFFF00000) == 0x200000)
-			return chipset_write_io(address, value);
+		if (mem->new_map) {
+			if ((address & 0xFFF00000) == 0x100000)
+				return chipset_write_io(address, value, mem->new_map);
+		} else {
+			if ((address & 0xFFF00000) == 0x200000)
+				return chipset_write_io(address, value, mem->new_map);
+		}
 		fprintf(stderr, "Invalid write to %X\n", address);
 		return;
 	}
@@ -159,9 +203,11 @@ void m68k_write_memory_32(unsigned int address, unsigned int value) {
 }
 
 
-void mem_init(const char *filename) {
+void mem_init(const char *filename, bool new_map) {
 	FILE *fp;
 	size_t sz;
+
+	fprintf(stderr, "using %s memory layout\n", new_map?"new":"old");
 
 	mem = calloc(sizeof(*mem), 1);
 
@@ -169,6 +215,7 @@ void mem_init(const char *filename) {
 	mem->rom = malloc(1024*512);
 	mem->mram = malloc(MEM_SIZE);
 	mem->rom_active = 1;
+	mem->new_map = new_map;
 
 	fp = fopen(filename, "r");
 	if(!fp) {

@@ -3,6 +3,14 @@
 
 #include <stdint.h>
 
+/* Den lökigaste SPI-hårdvaran i landet! */
+struct SpiStateNew {
+	uint8_t			reg;
+	unsigned int		slave_select;
+	unsigned int		clockdiv_reg;
+};
+
+
 /* Den blingigaste SPI-hårdvaran i stan! */
 struct SpiState {
 	/* Internal state only, not needed in hardware */
@@ -29,6 +37,8 @@ struct SpiState {
 };
 
 void spi_loop(int cycles);
+void spi_new_handle_write(unsigned int addr, unsigned int data);
+unsigned int spi_new_handle_read(unsigned int addr);
 
 extern struct SpiState spi_state;
 
