@@ -6,8 +6,8 @@ TARGETAS	?=	m68k-elf-as
 PREFIX		?=	/usr/local
 BIN		=	$(TOPDIR)/bin/m68k-emu
 
-DBGFLAGS	=	-O0 -g -D__DEBUG__
-#DBGFLAGS	=	-O3 -g
+#DBGFLAGS	=	-O0 -g -D__DEBUG__
+DBGFLAGS	=	-O3 -g
 #General flags
 
 CFLAGS		+=	-Wall -I/usr/local/include/musashi

@@ -36,6 +36,7 @@ enum ChipsetIoPort {
 
 	CHIPSET_IO_PORT_UART_READ = 0x80
 	
+	CHIPSET_IO_PORT_DEBUG = 0x60,
 };
 
 #endif
