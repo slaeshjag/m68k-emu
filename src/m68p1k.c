@@ -8,6 +8,7 @@
 #include "signal.h"
 #include "spi.h"
 #include "sd.h"
+#include "debug.h"
 
 void die(int arne) {
 	SDL_Quit();
@@ -30,8 +31,8 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 
-
 	signal(SIGINT, die);
+	debug_init();
 	if (argc >= 3)
 		spi_sd_init(argv[2]);
 	mem_init(argv[1]);
