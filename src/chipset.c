@@ -46,6 +46,7 @@ void chipset_int_set(int int_no, int set_unset) {
 
 void chipset_new_write_io(unsigned int addr, unsigned int data) {
 	if ((addr & 0xF00) == CHIPSET_IO_PORT_NEW_SPI_BASE) {
+		//fprintf(stderr, "SPI write to addr 0x%X: 0x%X\n", addr, data);
 		spi_new_handle_write(addr, data);
 	} else if ((addr & 0xF00) == CHIPSET_IO_PORT_NEW_UART_BASE) {
 		spi_new_handle_write(addr, data);
@@ -54,12 +55,16 @@ void chipset_new_write_io(unsigned int addr, unsigned int data) {
 
 
 unsigned int chipset_new_read_io(unsigned int addr) {
+	unsigned int data;
 	if ((addr & 0xF00) == CHIPSET_IO_PORT_NEW_SPI_BASE) {
-		return spi_new_handle_read(addr);
+		data = spi_new_handle_read(addr);
+		//fprintf(stderr, "SPI read from addr 0x%X: 0x%X\n", addr, data);
+		return data;
 	} else if ((addr & 0xF00) == CHIPSET_IO_PORT_NEW_UART_BASE) {
 		return uart_handle_read(addr);
 	} else if ((addr & 0xF00) == CHIPSET_IO_PORT_NEW_EXTINT) {
-		return 0x1;
+		//return 0x1;
+		return 0x0;
 	}
 
 	return ~0;

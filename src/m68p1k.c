@@ -25,26 +25,28 @@ static void *run_cpu(void *data) {
 
 
 int main(int argc, char **argv) {
-	bool new_map;
+	bool new_map, debug;
 	pthread_attr_t attr;
 	pthread_t thread;
 	
-	if(argc < 3) {
-		fprintf(stderr, "Usage: m68k <new | old> <bootimg.img> [spi rom] [sd card]\n");
+	if(argc < 4) {
+		fprintf(stderr, "Usage: m68k <new | old> <debug | nodebug> <bootimg.img> [spi rom] [sd card]\n");
 		return 1;
 	}
 
 	signal(SIGINT, die);
-	debug_init();
+	if (argc >= 6)
+		spi_sd_init(argv[5]);
 	if (argc >= 5)
-		spi_sd_init(argv[4]);
-	if (argc >= 4)
-		spi_rom_init(argv[3]);
+		spi_rom_init(argv[4]);
 	new_map = !strcasecmp(argv[1], "new");
-	mem_init(argv[2], new_map);
+	debug = !strcasecmp(argv[2], "debug");
+	if (debug)
+		debug_init();
+	mem_init(argv[3], new_map);
 	vga_init(new_map);
 	uart_init();
-	m68krash_init(M68K_CPU_030);
+	m68krash_init(new_map?M68K_CPU_040:M68K_CPU_030);
 	m68krash_reset(true);
 	
 	pthread_attr_init(&attr);
@@ -52,7 +54,8 @@ int main(int argc, char **argv) {
 	
 	for (;;) {
 		vga_render_line();
-		spi_loop(800);
+		if (!new_map)
+			spi_loop(800);
 	}
 
 

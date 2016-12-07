@@ -45,6 +45,12 @@ void *mem_decode_addr(unsigned int address, int *write) {
 		if (address >= 0x1000000 && address < 0x5000000)
 			return mem->mram + (address - 0x1000000);
 	}
+
+	if (((address & 0xFFF00000) == 0x100000) && mem->new_map) {
+		*write = 0;
+		return mem->llram;
+	}
+
 	if ((address & 0xFFF00000) == 0x200000) {
 		/* Dummy value */
 		*write = 0;

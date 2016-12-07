@@ -19,8 +19,7 @@ int spi_get_divider() {
 void spi_new_transfer_one(uint8_t send_byte) {
 	if (spi_state_new.slave_select == 0x1) {
 		spi_state_new.reg = spirom_send_receive(send_byte);
-	} else if (spi_state_new.slave_select == 0x4) {
-		fprintf(stderr, "Transferring data %X to SPI\n", send_byte);
+	} else if (spi_state_new.slave_select == 0x3) {
 		spi_state_new.reg = spi_sd_send_recv(send_byte);
 	}
 }
@@ -30,7 +29,7 @@ uint32_t spi_new_handle_read(unsigned int addr) {
 	if ((addr & 0xFC) == 0) {
 		return spi_state_new.reg;
 	} else if ((addr & 0xFC) == 0x4) {
-		return spi_state_new.clockdiv_reg | 0x1;
+		return spi_state_new.clockdiv_reg;
 	} else if ((addr & 0xFC) == 0x8) {
 		return spi_state_new.slave_select;
 	}

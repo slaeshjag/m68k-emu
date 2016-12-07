@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "mem.h"
 
 enum SdState {
 	SD_STATE_NOCARD,
@@ -76,10 +77,12 @@ void spi_sd_init(const char *sd_image) {
 
 
 int spi_sd_check_enabled() {
-	if (sd_state.state == SD_STATE_NOCARD)
-		return 0;
-	if (!(spi_state.line_select & 0x4))
-		return 0;
+	if (!mem->new_map) {
+		if (!(spi_state.line_select & 0x4))
+			return 0;
+		if (sd_state.state == SD_STATE_NOCARD)
+			return 0;
+	}
 	return 1;
 }
 
@@ -164,6 +167,11 @@ uint8_t spi_sd_send_recv(uint8_t byte) {
 				sd_state.arg[3] = 0x80;
 				sd_state.arg[2] = 0xFF;
 				sd_state.arg[1] = sd_state.arg[0] = 0x0;
+				return 0x0;
+			} else if (sd_state.command == 105) {	/* ACMD41 (init) */
+			//	if (--sd_state.init_wait == 0) {
+				sd_state.state = SD_STATE_INIT;
+				sd_state.substate = SD_SUBSTATE_IDLE;
 				return 0x0;
 			} else if (sd_state.command == 9) {	/* Read CSD */
 				fprintf(stderr, "READ CSD\n");

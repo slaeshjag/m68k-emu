@@ -44,11 +44,11 @@ static int _data_available() {
 
 uint32_t uart_handle_read(unsigned int addr) {
 	uint8_t data = 0xFF;
-	if ((addr & 0xFFC) == 0x0) {
+	if ((addr & 0xFC) == 0x0) {
 		if (_data_available() >= 0)
 			read(uart_state.fd, &data, 1);
 		return data;
-	} else if ((addr & 0xFFC) == 0x4) {
+	} else if ((addr & 0xFC) == 0x4) {
 		return (_data_available() >= 0) ? 0x3 : 0x1;
 	}
 
