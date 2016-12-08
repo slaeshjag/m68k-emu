@@ -21,22 +21,8 @@ void vga_init(bool new_mode) {
 		vga_state.pal = malloc(256*2);
 		vga_state.vga_width = 800;
 		pal_data = (void *) vga_state.pal;
-		pal_data[0] = 0x0000;
-		pal_data[1] = 0x0014;
-		pal_data[2] = 0x0540;
-		pal_data[3] = 0x0554;
-		pal_data[4] = 0xA000;
-		pal_data[5] = 0xA014;
-		pal_data[6] = 0xA380;
-		pal_data[7] = 0xA554;
-		pal_data[8] = 0x52AA;
-		pal_data[9] = 0x52BF;
-		pal_data[10] = 0x57EA;
-		pal_data[11] = 0x57FF;
-		pal_data[12] = 0xF800;
-		pal_data[13] = 0xFAAF;
-		pal_data[14] = 0xFFE0;
-		pal_data[15] = 0xFFFF;
+		for (i = 0; i < 256; i++)
+			pal_data[i] = palette_data[i];
 	}
 
 
@@ -75,8 +61,13 @@ void vga_render_line() {
 	
 	for (i = 0; i < vga_state.vga_width; i++) {
 		ptr = &vga_state.pal[vga_state.buff[ram_pos] * 2];
-		pix = ((*ptr++) << 8);
-		pix |= *ptr;
+		if (!mem->new_map) {
+			pix = ((*ptr++) << 8);
+			pix |= *ptr;
+		} else {
+			pix = *ptr;
+			pix |= (*(ptr + 1) << 8);
+		}
 		*next_pb = pix;
 		ram_pos++, next_pb++;
 		#ifdef VGA_WINDOW_SCROLL
