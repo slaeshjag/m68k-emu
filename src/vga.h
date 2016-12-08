@@ -28,6 +28,8 @@ struct VgaState {
 	SDL_Surface		*screen;
 	SDL_Surface		*pixbuf;
 	int			ticks;
+
+	uint8_t			keyboard;
 };
 
 

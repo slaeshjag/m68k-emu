@@ -12,6 +12,8 @@ void vga_init(bool new_mode) {
 	int i;
 	uint16_t *pal_data;
 
+	vga_state.keyboard = 0;
+
 	if (!new_mode) {
 		vga_state.buff = mem_decode_addr(0x00081800, &i);
 		vga_state.pal = mem_decode_addr(0x00081400, &i);
@@ -80,6 +82,7 @@ void vga_render_line() {
 
 	vga_state.line++;
 	if (vga_state.line == 525) {
+		SDL_Event event_sdl;
 		chipset_int_set(CHIPSET_INT_NUM_VGA_VSYNC, 1);
 		
 		vga_state.line = 0;
@@ -91,7 +94,48 @@ void vga_render_line() {
 		else
 			fprintf(stderr, "Running below framerate (ft=%i ms)\n", SDL_GetTicks() - vga_state.ticks);
 		vga_state.ticks = SDL_GetTicks();
+		
+		while (SDL_PollEvent(&event_sdl)) {
+			switch (event_sdl.type) {
+				case SDL_KEYDOWN:
+					if (event_sdl.key.keysym.sym == SDLK_LEFT)
+						vga_state.keyboard |= 0x1;
+					else if (event_sdl.key.keysym.sym == SDLK_RIGHT)
+						vga_state.keyboard |= 0x2;
+					else if (event_sdl.key.keysym.sym == SDLK_UP)
+						vga_state.keyboard |= 0x4;
+					else if (event_sdl.key.keysym.sym == SDLK_DOWN)
+						vga_state.keyboard |= 0x8;
+					else if (event_sdl.key.keysym.sym == SDLK_SPACE)
+						vga_state.keyboard |= 0x10;
+					else if (event_sdl.key.keysym.sym == SDLK_ESCAPE)
+						vga_state.keyboard |= 0x20;
+					break;
+				case SDL_KEYUP:
+					if (event_sdl.key.keysym.sym == SDLK_LEFT)
+						vga_state.keyboard &= ~0x1;
+					else if (event_sdl.key.keysym.sym == SDLK_RIGHT)
+						vga_state.keyboard &= ~0x2;
+					else if (event_sdl.key.keysym.sym == SDLK_UP)
+						vga_state.keyboard &= ~0x4;
+					else if (event_sdl.key.keysym.sym == SDLK_DOWN)
+						vga_state.keyboard &= ~0x8;
+					else if (event_sdl.key.keysym.sym == SDLK_SPACE)
+						vga_state.keyboard &= ~0x10;
+					else if (event_sdl.key.keysym.sym == SDLK_ESCAPE)
+						vga_state.keyboard &= ~0x20;
+					break;
+				case SDL_QUIT:
+					exit(0);
+					break;
+				default:
+					break;
+			}
+
+		}
 	}
+
+	vga_state.keyboard |= 0xC0;
 
 	return;
 }

@@ -2,6 +2,8 @@
 #include "mem.h"
 #include "sd.h"
 #include "chipset.h"
+#include "spirom.h"
+#include "spi_keyboard.h"
 #include <stdint.h>
 #include <stdio.h>
 
@@ -19,6 +21,8 @@ int spi_get_divider() {
 void spi_new_transfer_one(uint8_t send_byte) {
 	if (spi_state_new.slave_select == 0x1) {
 		spi_state_new.reg = spirom_send_receive(send_byte);
+	} else if (spi_state_new.slave_select == 0x2) {
+		spi_state_new.reg = spi_keyboard_send_receive(send_byte);
 	} else if (spi_state_new.slave_select == 0x3) {
 		spi_state_new.reg = spi_sd_send_recv(send_byte);
 	}
@@ -44,6 +48,7 @@ void spi_new_handle_write(unsigned int addr, unsigned int data) {
 	} else if ((addr & 0xFC) == 0x8) {
 		spi_state_new.slave_select = data;
 		spirom_selected_notify((data & 0xF) == 0x1);
+		spi_keyboard_notify_selected((data & 0xF) == 0x2);
 	} else if ((addr & 0xFC) == 0x4) {
 		spi_state_new.clockdiv_reg = data & 0xFFFF0000;
 	} else
