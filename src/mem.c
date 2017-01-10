@@ -31,27 +31,27 @@ uint32_t junk;
 void *mem_decode_addr(unsigned int address, int *write) {
 	*write = 1;
 
-	if (address < 0x80000) {
+	if (address < 0x80000UL) {
 		*write = 0;
 		return mem->rom + address;
-	} else if (address >= 0x80000 && address < 0x100000) {
-		return mem->llram + (address - 0x80000);
+	} else if (address >= 0x80000UL && address < 0x100000UL) {
+		return mem->llram + (address - 0x80000UL);
 	}
 
 	if (mem->new_map) {
-		if (address >= 0x80000000 && address < 0x84000000)
-			return mem->mram + (address - 0x80000000);
+		if (address >= 0x80000000UL && address < 0x84000000UL)
+			return mem->mram + (address - 0x80000000UL);
 	} else {
-		if (address >= 0x1000000 && address < 0x5000000)
-			return mem->mram + (address - 0x1000000);
+		if (address >= 0x1000000UL && address < 0x5000000UL)
+			return mem->mram + (address - 0x1000000UL);
 	}
 
-	if (((address & 0xFFF00000) == 0x100000) && mem->new_map) {
+	if (((address & 0xFFF00000UL) == 0x100000UL) && mem->new_map) {
 		*write = 0;
 		return mem->llram;
 	}
 
-	if ((address & 0xFFF00000) == 0x200000) {
+	if ((address & 0xFFF00000UL) == 0x200000UL) {
 		/* Dummy value */
 		*write = 0;
 		return mem->llram;
@@ -72,10 +72,10 @@ unsigned int m68k_read_memory_8(unsigned int address) {
 	}
 
 	if (mem->new_map) {
-		if (!write && (address & 0xFFF00000) == 0x100000)
+		if (!write && (address & 0xFFF00000UL) == 0x100000UL)
 			tmp = chipset_read_io(address, mem->new_map), ptr = (void *) &tmp;
 	} else {
-		if (!write && (address & 0xFFF00000) == 0x200000)
+		if (!write && (address & 0xFFF00000UL) == 0x200000UL)
 			tmp = chipset_read_io(address, mem->new_map), ptr = (void *) &tmp;
 	}
 
@@ -93,12 +93,12 @@ unsigned int m68k_read_memory_16(unsigned int address) {
 	}
 
 	if (mem->new_map) {
-		if (!write && (address & 0xFFF00000) == 0x200000)
+		if (!write && (address & 0xFFF00000UL) == 0x200000UL)
 			data = chipset_read_io(address, mem->new_map), ptr = (void *) &tmp;
 		else
 			data = ((*ptr) << 8) | ((*(ptr + 1)) << 0);
 	} else {
-		if (!write && (address & 0xFFF00000) == 0x100000)
+		if (!write && (address & 0xFFF00000UL) == 0x100000UL)
 			data = chipset_read_io(address, mem->new_map), ptr = (void *) &tmp;
 		else
 			data = ((*ptr) << 8) | ((*(ptr + 1)) << 0);
@@ -115,12 +115,12 @@ unsigned int m68k_read_memory_32(unsigned int address) {
 		return 0;
 	}
 	if (mem->new_map) {
-		if (!write && (address & 0xFFF00000) == 0x100000)
+		if (!write && (address & 0xFFF00000UL) == 0x100000UL)
 			data = chipset_read_io(address, mem->new_map), ptr = (void *) &tmp;
 		else
 			data = ((*ptr) << 24) | ((*(ptr + 1)) << 16) | ((*(ptr + 2)) << 8) | ((*(ptr + 3)) << 0);
 	} else {
-		if (!write && (address & 0xFFF00000) == 0x200000)
+		if (!write && (address & 0xFFF00000UL) == 0x200000UL)
 			data = chipset_read_io(address, mem->new_map), ptr = (void *) &tmp;
 		else
 			data = ((*ptr) << 24) | ((*(ptr + 1)) << 16) | ((*(ptr + 2)) << 8) | ((*(ptr + 3)) << 0);
@@ -138,10 +138,10 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
 	
 	if (!write) {
 		if (mem->new_map) {
-			if ((address & 0xFFF00000) == 0x100000)
+			if ((address & 0xFFF00000UL) == 0x100000UL)
 				return chipset_write_io(address, value, mem->new_map);
 		} else {
-			if ((address & 0xFFF00000) == 0x200000)
+			if ((address & 0xFFF00000UL) == 0x200000UL)
 				return chipset_write_io(address, value, mem->new_map);
 		}
 
@@ -166,10 +166,10 @@ void m68k_write_memory_16(unsigned int address, unsigned int value) {
 	}
 	if (!write) {
 		if (mem->new_map) {
-			if ((address & 0xFFF00000) == 0x100000)
+			if ((address & 0xFFF00000UL) == 0x100000UL)
 				return chipset_write_io(address, value, mem->new_map);
 		} else {
-			if ((address & 0xFFF00000) == 0x200000)
+			if ((address & 0xFFF00000UL) == 0x200000UL)
 				return chipset_write_io(address, value, mem->new_map);
 		}
 
@@ -192,10 +192,10 @@ void m68k_write_memory_32(unsigned int address, unsigned int value) {
 	}
 	if (!write) {
 		if (mem->new_map) {
-			if ((address & 0xFFF00000) == 0x100000)
+			if ((address & 0xFFF00000UL) == 0x100000UL)
 				return chipset_write_io(address, value, mem->new_map);
 		} else {
-			if ((address & 0xFFF00000) == 0x200000)
+			if ((address & 0xFFF00000UL) == 0x200000UL)
 				return chipset_write_io(address, value, mem->new_map);
 		}
 		fprintf(stderr, "Invalid write to %X\n", address);

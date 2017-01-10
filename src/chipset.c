@@ -50,6 +50,9 @@ void chipset_new_write_io(unsigned int addr, unsigned int data) {
 		spi_new_handle_write(addr, data);
 	} else if ((addr & 0xF00) == CHIPSET_IO_PORT_NEW_UART_BASE) {
 		spi_new_handle_write(addr, data);
+	} else if((addr & 0xF00) == CHIPSET_IO_PORT_NEW_DEBUG) {
+		printf("debug send @0x%X 0x%X\n", addr, data);
+		debug_send(data);
 	}
 }
 
@@ -65,6 +68,11 @@ unsigned int chipset_new_read_io(unsigned int addr) {
 	} else if ((addr & 0xF00) == CHIPSET_IO_PORT_NEW_EXTINT) {
 		//return 0x1;
 		return 0x0;
+	} else if((addr & 0xF00) == CHIPSET_IO_PORT_NEW_DEBUG) {
+		unsigned int d;
+		d = debug_recv();
+		printf("debug recv @0x%X 0x%X\n", addr, d);
+		return d;
 	}
 
 	return ~0;
