@@ -92,7 +92,7 @@ void vga_render_line() {
 		if (SDL_GetTicks() - vga_state.ticks <= 20)
 			SDL_Delay(20 - (SDL_GetTicks() - vga_state.ticks));
 		else
-			fprintf(stderr, "Running below framerate (ft=%i ms)\n", SDL_GetTicks() - vga_state.ticks);
+			//fprintf(stderr, "Running below framerate (ft=%i ms)\n", SDL_GetTicks() - vga_state.ticks);
 		vga_state.ticks = SDL_GetTicks();
 		
 		while (SDL_PollEvent(&event_sdl)) {
