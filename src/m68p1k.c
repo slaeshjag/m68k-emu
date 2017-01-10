@@ -11,6 +11,7 @@
 #include "debug.h"
 #include "uart.h"
 #include "spirom.h"
+#include "chipset.h"
 
 void die(int arne) {
 	SDL_Quit();
@@ -30,7 +31,7 @@ int main(int argc, char **argv) {
 	pthread_t thread;
 	
 	if(argc < 4) {
-		fprintf(stderr, "Usage: m68k <new | old> <debug | nodebug> <bootimg.img> [spi rom] [sd card]\n");
+		fprintf(stderr, "Usage: m68k <new | newspiboot | old> <debug | nodebug> <bootimg.img> [spi rom] [sd card]\n");
 		return 1;
 	}
 
@@ -39,7 +40,10 @@ int main(int argc, char **argv) {
 		spi_sd_init(argv[5]);
 	if (argc >= 5)
 		spi_rom_init(argv[4]);
-	new_map = !strcasecmp(argv[1], "new");
+	if (!(new_map = !strcasecmp(argv[1], "new"))) {
+		new_map = !strcasecmp(argv[1], "newspiboot");
+		chipset_set_boot_switch(1);
+	} 
 	debug = !strcasecmp(argv[2], "debug");
 	if (debug)
 		debug_init();
