@@ -60,6 +60,17 @@ void chipset_new_write_io(unsigned int addr, unsigned int data) {
 	} else if((addr & 0xF00) == CHIPSET_IO_PORT_NEW_DEBUG) {
 		printf("debug send @0x%X 0x%X\n", addr, data);
 		debug_send(data);
+	} else if ((addr & 0xF00) == CHIPSET_IO_PORT_NEW_EXTINT) {
+		if ((addr & 0xFC) == 0x4)
+			chipset_int_set(0, !!(data & 1));
+		else if ((addr & 0xFC) == 0x8) {
+			int i;
+
+			for (i = 1; i < 8; i++) {
+				if (data & (1 << i))
+					chipset_int_set(i, 0);
+			}
+		}
 	}
 }
 
