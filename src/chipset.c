@@ -7,6 +7,13 @@
 
 
 static int interrupt[8];
+static int bootswitch = 0;
+
+
+void chipset_set_boot_switch(int sw) {
+	bootswitch = sw;
+}
+
 
 int chipset_get_interrupt_level() {
 	int i;
@@ -66,8 +73,7 @@ unsigned int chipset_new_read_io(unsigned int addr) {
 	} else if ((addr & 0xF00) == CHIPSET_IO_PORT_NEW_UART_BASE) {
 		return uart_handle_read(addr);
 	} else if ((addr & 0xF00) == CHIPSET_IO_PORT_NEW_EXTINT) {
-		//return 0x1;
-		return 0x0;
+		return bootswitch;
 	} else if((addr & 0xF00) == CHIPSET_IO_PORT_NEW_DEBUG) {
 		unsigned int d;
 		d = debug_recv();
