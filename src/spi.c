@@ -99,8 +99,8 @@ void spi_loop_one() {
 		*recv = recv_byte;
 	if (!spi_state.mem_counter) {
 		spi_state.reg = 0;
-		if (spi_state.line_select & 020)
-			chipset_int_set(CHIPSET_INT_NUM_SPI_DONE, 1);
+		//if (spi_state.line_select & 020)
+		//	chipset_int_set(CHIPSET_INT_NUM_SPI_DONE, 1);
 	} else
 		spi_state.mem_counter--;
 	return;

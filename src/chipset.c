@@ -4,31 +4,33 @@
 #include "spi.h"
 #include "uart.h"
 #include "debug.h"
+#include "interrupt.h"
 
 
-static int interrupt[8];
-static int bootswitch = 0;
+//static int interrupt[8];
+//static int bootswitch = 0;
 
 
 void chipset_set_boot_switch(int sw) {
-	bootswitch = sw;
+	interrupt_set_boot_switch(sw);
 }
 
 
 int chipset_get_interrupt_level() {
-	int i;
+	//int i;
 
-	if (!interrupt[0])
+	return interrupt_get_ipl();
+	/*if (!interrupt[0])
 		return 0;
 
 	for (i = 0; i < 7; i++)
 		if (interrupt[7-i]) {
 			return 7 - i;
-		}
+		}*/
 	return 0;
 }
 
-
+/*
 void chipset_int_set(int int_no, int set_unset) {
 	int i;
 
@@ -48,16 +50,18 @@ void chipset_int_set(int int_no, int set_unset) {
 	}
 
 	//m68k_set_irq(0);
-}
+}*/
 
 
 void chipset_new_write_io(unsigned int addr, unsigned int data) {
-	if ((addr & 0xF00) == CHIPSET_IO_PORT_NEW_SPI_BASE) {
+	if ((addr & 0xF00) == CHIPSET_IO_PORT_NEW_INTERRUPT) {
+		interrupt_do_write_lword(addr, data);
+	} else if ((addr & 0xF00) == CHIPSET_IO_PORT_NEW_SPI_BASE) {
 		//fprintf(stderr, "SPI write to addr 0x%X: 0x%X\n", addr, data);
 		spi_new_handle_write(addr, data);
 	} else if ((addr & 0xF00) == CHIPSET_IO_PORT_NEW_UART_BASE) {
 		spi_new_handle_write(addr, data);
-	} else if ((addr & 0xF00) == CHIPSET_IO_PORT_NEW_EXTINT) {
+	} /*else if ((addr & 0xF00) == CHIPSET_IO_PORT_NEW_EXTINT) {
 		if ((addr & 0xFC) == 0x4)
 			chipset_int_set(0, !!(data & 1));
 		else if ((addr & 0xFC) == 0x8) {
@@ -68,21 +72,23 @@ void chipset_new_write_io(unsigned int addr, unsigned int data) {
 					chipset_int_set(i, 0);
 			}
 		}
-	}
+	}*/
 }
 
 
 unsigned int chipset_new_read_io(unsigned int addr) {
 	unsigned int data;
-	if ((addr & 0xF00) == CHIPSET_IO_PORT_NEW_SPI_BASE) {
+	if ((addr & 0xF00) == CHIPSET_IO_PORT_NEW_INTERRUPT) {
+		return interrupt_do_read_lword(addr);
+	} else if ((addr & 0xF00) == CHIPSET_IO_PORT_NEW_SPI_BASE) {
 		data = spi_new_handle_read(addr);
 		//fprintf(stderr, "SPI read from addr 0x%X: 0x%X\n", addr, data);
 		return data;
 	} else if ((addr & 0xF00) == CHIPSET_IO_PORT_NEW_UART_BASE) {
 		return uart_handle_read(addr);
-	} else if ((addr & 0xF00) == CHIPSET_IO_PORT_NEW_EXTINT) {
+	}/* else if ((addr & 0xF00) == CHIPSET_IO_PORT_NEW_EXTINT) {
 		return bootswitch;
-	}
+	}*/
 
 	return ~0;
 }
@@ -96,13 +102,13 @@ void chipset_write_io(unsigned int addr, unsigned int data, bool new_map) {
 	
 	switch(port) {
 		case CHIPSET_IO_PORT_INTERRUPT_ENABLE:
-			chipset_int_set(0, data & 1);
+			//chipset_int_set(0, data & 1);
 			return;
 		case CHIPSET_IO_PORT_IRQ_ACK_SPI:
-			chipset_int_set(CHIPSET_INT_NUM_SPI_DONE, 0);
+			//chipset_int_set(CHIPSET_INT_NUM_SPI_DONE, 0);
 			return;
 		case CHIPSET_IO_PORT_IRQ_ACK_VGA:
-			chipset_int_set(CHIPSET_INT_NUM_VGA_VSYNC, 0);
+			//chipset_int_set(CHIPSET_INT_NUM_VGA_VSYNC, 0);
 			return;
 			
 		case CHIPSET_IO_PORT_VGA_WINDOW_X:
