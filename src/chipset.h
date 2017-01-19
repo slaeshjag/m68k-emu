@@ -10,10 +10,10 @@ uint32_t chipset_read_io(unsigned int addr, bool new_map);
 void chipset_set_boot_switch(int sw);
 
 enum ChipsetIntNum {
-	CHIPSET_INT_NUM_SPI_DONE = 3,
-	CHIPSET_INT_NUM_EXTERNAL,
-	CHIPSET_INT_NUM_VGA_VSYNC,
+	CHIPSET_INT_NUM_SPI_DONE = 8,
+	CHIPSET_INT_NUM_VGA_VSYNC = 10,
 	CHIPSET_INT_NUM_AUDIO,
+	CHIPSET_INT_NUM_EXTERNAL,
 };
 
 
