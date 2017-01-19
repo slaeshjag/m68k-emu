@@ -61,6 +61,9 @@ void chipset_new_write_io(unsigned int addr, unsigned int data) {
 		spi_new_handle_write(addr, data);
 	} else if ((addr & 0xF00) == CHIPSET_IO_PORT_NEW_UART_BASE) {
 		spi_new_handle_write(addr, data);
+	} else if((addr & 0xF00) == CHIPSET_IO_PORT_NEW_DEBUG) {
+		printf("debug send @0x%X 0x%X\n", addr, data);
+		debug_send(data);
 	} /*else if ((addr & 0xF00) == CHIPSET_IO_PORT_NEW_EXTINT) {
 		if ((addr & 0xFC) == 0x4)
 			chipset_int_set(0, !!(data & 1));
@@ -88,7 +91,12 @@ unsigned int chipset_new_read_io(unsigned int addr) {
 		return uart_handle_read(addr);
 	}/* else if ((addr & 0xF00) == CHIPSET_IO_PORT_NEW_EXTINT) {
 		return bootswitch;
-	}*/
+	} */else if((addr & 0xF00) == CHIPSET_IO_PORT_NEW_DEBUG) {
+		unsigned int d;
+		d = debug_recv();
+		printf("debug recv @0x%X 0x%X\n", addr, d);
+		return d;
+	}
 
 	return ~0;
 }
