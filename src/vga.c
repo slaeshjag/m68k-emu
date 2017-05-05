@@ -6,6 +6,8 @@
 #include <SDL/SDL.h>
 #include <arpa/inet.h>
 
+#include "spi_keyboard.h"
+
 struct VgaState vga_state;
 
 void vga_init(bool new_mode) {
@@ -103,7 +105,8 @@ void vga_render_line() {
 		while (SDL_PollEvent(&event_sdl)) {
 			switch (event_sdl.type) {
 				case SDL_KEYDOWN:
-					if (event_sdl.key.keysym.sym == SDLK_LEFT)
+					spi_keyboard_push_event(true, event_sdl.key.keysym.scancode);
+					/*if (event_sdl.key.keysym.sym == SDLK_LEFT)
 						vga_state.keyboard |= 0x1;
 					else if (event_sdl.key.keysym.sym == SDLK_RIGHT)
 						vga_state.keyboard |= 0x2;
@@ -114,10 +117,11 @@ void vga_render_line() {
 					else if (event_sdl.key.keysym.sym == SDLK_SPACE)
 						vga_state.keyboard |= 0x10;
 					else if (event_sdl.key.keysym.sym == SDLK_ESCAPE)
-						vga_state.keyboard |= 0x20;
+						vga_state.keyboard |= 0x20;*/
 					break;
 				case SDL_KEYUP:
-					if (event_sdl.key.keysym.sym == SDLK_LEFT)
+					spi_keyboard_push_event(false, event_sdl.key.keysym.scancode);
+					/*if (event_sdl.key.keysym.sym == SDLK_LEFT)
 						vga_state.keyboard &= ~0x1;
 					else if (event_sdl.key.keysym.sym == SDLK_RIGHT)
 						vga_state.keyboard &= ~0x2;
@@ -128,7 +132,26 @@ void vga_render_line() {
 					else if (event_sdl.key.keysym.sym == SDLK_SPACE)
 						vga_state.keyboard &= ~0x10;
 					else if (event_sdl.key.keysym.sym == SDLK_ESCAPE)
-						vga_state.keyboard &= ~0x20;
+						vga_state.keyboard &= ~0x20;*/
+					break;
+				case SDL_MOUSEBUTTONDOWN:
+					if (event_sdl.button.button == SDL_BUTTON_LEFT)
+						spi_keyboard_push_event(true, 192);
+					if (event_sdl.button.button == SDL_BUTTON_MIDDLE)
+						spi_keyboard_push_event(true, 193);
+					if (event_sdl.button.button == SDL_BUTTON_RIGHT)
+						spi_keyboard_push_event(true, 194);
+					break;
+				case SDL_MOUSEBUTTONUP:
+					if (event_sdl.button.button == SDL_BUTTON_LEFT)
+						spi_keyboard_push_event(false, 192);
+					if (event_sdl.button.button == SDL_BUTTON_MIDDLE)
+						spi_keyboard_push_event(false, 193);
+					if (event_sdl.button.button == SDL_BUTTON_RIGHT)
+						spi_keyboard_push_event(false, 194);
+					break;
+				case SDL_MOUSEMOTION:
+					spi_keyboard_digitizer_set(event_sdl.motion.x, event_sdl.motion.y);
 					break;
 				case SDL_QUIT:
 					exit(0);
