@@ -35,9 +35,9 @@ int interrupt_get_ipl() {
 
 uint32_t interrupt_do_read_lword(uint32_t addr) {
 	addr &= 0xFC;
-	//fprintf(stderr, "Chipset interrupt read 0x%X: 0x%X\n", addr, is.bootswitch);
+//	fprintf(stderr, "Chipset interrupt read 0x%X: 0x%X\n", addr, is.bootswitch);
 	if (!addr)
-		return fprintf(stderr, "arne\n"), 0xFFFFFFFF;
+		return 0xFFFFFFFF;
 	if (addr == 0x80)
 		return is.bootswitch;
 	if (addr > 0x80)
@@ -48,17 +48,17 @@ uint32_t interrupt_do_read_lword(uint32_t addr) {
 
 
 void interrupt_do_write_lword(uint32_t addr, uint32_t data) {
-	printf("write to interrupt controller addr = 0x%X\n", addr);
+	//printf("write to interrupt controller addr = 0x%X\n", addr);
 	addr &= 0xFC;
 	if (!addr)
 		return;
 	if (addr == 0x80)
 		return;
 	if (addr > 0x80) {
-		printf("cleared interrupt flag %i\n", (addr & ~0x80) >> 2);
+		//printf("cleared interrupt flag %i\n", (addr & ~0x80) >> 2);
 		is.int_flag[(addr & 0x7C) >> 2] = data;
 	} else {
-		printf("enabled interrupt %i\n", addr >> 2);
+		//printf("enabled interrupt %i\n", addr >> 2);
 		is.priority[addr >> 2] = data;
 	}
 }
