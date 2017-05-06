@@ -56,7 +56,7 @@ void audio_io_write(uint32_t addr, uint32_t data) {
 			spec.freq = 24576000 / sample_rate;
 			spec.format = AUDIO_S16SYS;
 			spec.channels = 2;
-			spec.samples = 32 << buffer_size;
+			spec.samples = 64 << buffer_size;
 			spec.callback = _copy_audio;
 			spec.userdata = NULL;
 			fprintf(stderr, "[AUDIO] Enabled audio, fs=%i Hz, bs=%i\n", spec.freq, spec.samples * 2);
@@ -66,7 +66,7 @@ void audio_io_write(uint32_t addr, uint32_t data) {
 		}
 	} else if (addr == 0x8) {
 		buffer_pos = data & 0x7FFFF;
-		buffer_pos &= ~(0x7FF >> (4 - buffer_size));
+		buffer_pos &= ~(0x7FF >> (3 - buffer_size));
 	} else if (addr == 0xC) {
 		buffer_size = data & 0x3;
 	} else if (addr == 0x10) {
