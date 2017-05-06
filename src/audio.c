@@ -18,7 +18,9 @@ static void _copy_audio(void *junk, uint8_t *data, int bytes) {
 	int16_t *buff = (void *) data;
 	int8_t *read_buff = mem->llram + (buffer * bytes) + buffer_pos;
 	int i;
-		
+
+	buffer = !buffer;
+
 	while (thread_ack != 1) {
 		usleep(10);
 	}
