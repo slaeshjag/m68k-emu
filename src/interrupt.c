@@ -35,7 +35,7 @@ int interrupt_get_ipl() {
 
 uint32_t interrupt_do_read_lword(uint32_t addr) {
 	addr &= 0xFC;
-	fprintf(stderr, "Chipset interrupt read 0x%X: 0x%X\n", addr, is.bootswitch);
+	//fprintf(stderr, "Chipset interrupt read 0x%X: 0x%X\n", addr, is.bootswitch);
 	if (!addr)
 		return fprintf(stderr, "arne\n"), 0xFFFFFFFF;
 	if (addr == 0x80)
