@@ -61,7 +61,7 @@ void vga_render_line() {
 	ram_pos += vga_state.reg.window_x;
 	#else
 	if (vga_state.vga_reg.mode == 2)
-		ram_pos = (vga_state.line - 13)/2 * vga_state.vga_width;
+		ram_pos = (vga_state.line - 13)/2 * vga_state.vga_width/2;
 	else
 		ram_pos = (vga_state.line - 13) * vga_state.vga_width;
 	#endif
