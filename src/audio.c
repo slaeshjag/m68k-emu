@@ -16,7 +16,7 @@ static volatile int8_t thread_ack = 0;
 
 static void _copy_audio(void *junk, uint8_t *data, int bytes) {
 	int16_t *buff = (void *) data;
-	int8_t *read_buff = mem->llram + (buffer * bytes) + buffer_pos;
+	int8_t *read_buff = mem->llram + (buffer * bytes/2) + buffer_pos;
 	int i;
 
 	buffer = !buffer;
