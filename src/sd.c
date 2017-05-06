@@ -102,7 +102,7 @@ uint8_t sd_idle_handler(uint8_t byte) {
 uint8_t sd_read_command(uint8_t byte) {
 	sd_state.arg[sd_state.args++] = byte;
 	if (sd_state.args == 5) {
-		fprintf(stderr, "Command %i\n", sd_state.command);
+		//fprintf(stderr, "Command %i\n", sd_state.command);
 		sd_state.substate = SD_SUBSTATE_PROCESS;
 	}
 	
@@ -174,7 +174,7 @@ uint8_t spi_sd_send_recv(uint8_t byte) {
 				sd_state.substate = SD_SUBSTATE_IDLE;
 				return 0x0;
 			} else if (sd_state.command == 9) {	/* Read CSD */
-				fprintf(stderr, "READ CSD\n");
+				//fprintf(stderr, "READ CSD\n");
 				sd_state.substate = SD_SUBSTATE_SEND_REG;
 				sd_state.args = 20;
 				sd_state.arg[19] = 0xFF, sd_state.arg[18] = 0xFE;
