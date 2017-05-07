@@ -60,15 +60,15 @@ void vga_render_line() {
 	ram_pos *= 800;
 	ram_pos += vga_state.reg.window_x;
 	#else
-	if (vga_state.vga_reg.mode == 2)
-		ram_pos = (vga_state.line - 13)/2 * vga_state.vga_width/2;
+	if (vga_state.vga_reg.mode & 2)
+		ram_pos = (vga_state.line - 13)/2 * vga_state.vga_width/2 + !!(vga_state.vga_reg.mode & 4) * (1 << 27);
 	else
 		ram_pos = (vga_state.line - 13) * vga_state.vga_width;
 	#endif
 	next_pb += (vga_state.line - 13) * vga_state.vga_width;
 	
 	for (i = 0; i < vga_state.vga_width; i++) {
-		if (!vga_state.vga_reg.mode) {
+		if (!(vga_state.vga_reg.mode & 1)) {
 			pix = 0;
 			goto got_pix;
 		}
@@ -97,7 +97,7 @@ void vga_render_line() {
 		}
 	got_pix:
 		*next_pb = pix;
-		if (vga_state.vga_reg.mode == 2) {
+		if (vga_state.vga_reg.mode & 2) {
 			if (i & 1)
 				ram_pos++;
 		} else
