@@ -13,25 +13,37 @@ static uint8_t buffer_size = 3;
 static uint32_t buffer_pos = 0x0;
 static int8_t buffer = 0;
 static volatile int8_t thread_ack = 0;
+static uint8_t audio_buffer[1024];
+static int audio_buffer_pos = 512;
+
 
 static void _copy_audio(void *junk, uint8_t *data, int bytes) {
+	int i, j;
 	int16_t *buff = (void *) data;
-	int8_t *read_buff = mem->llram + (buffer * bytes/2) + buffer_pos;
-	int i;
+	//fprintf(stderr, "bytes=%i\n", bytes);
+	
+	for (i = 0; i < (bytes >> 2);) {
+		for (; audio_buffer_pos < (64 << buffer_size); audio_buffer_pos++, i++) {
+			if (i == bytes)
+				return;
+			buff[i<<1] = 0x100 * (audio_buffer[audio_buffer_pos<<1] - 128);
+			buff[(i<<1)+1] = 0x100 * (audio_buffer[(audio_buffer_pos<<1) + 1] - 128);
+		}
 
-	buffer = !buffer;
+		int8_t *read_buff = mem->llram + (buffer * (128 << buffer_size)) + buffer_pos;
+	
+		audio_buffer_pos = 0;
+	
+		while (thread_ack != 1) {
+			usleep(10);
+		}
 
-	while (thread_ack != 1) {
-		usleep(10);
+		buffer = !buffer;
+		memcpy(audio_buffer, read_buff, (128 << buffer_size));
+	
+		thread_ack = 0;
+		interrupt_trig(CHIPSET_INT_NUM_AUDIO);
 	}
-
-	for (i = 0; i < (bytes >> 2); i++) {
-		buff[i<<1] = 0x100 * (read_buff[i<<1] - 128);
-		buff[(i<<1)+1] = 0x100 * (read_buff[(i<<1) + 1] - 128);
-	}
-
-	thread_ack = 0;
-	interrupt_trig(CHIPSET_INT_NUM_AUDIO);
 }
 
 
