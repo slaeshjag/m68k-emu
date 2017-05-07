@@ -61,7 +61,7 @@ void vga_render_line() {
 	ram_pos += vga_state.reg.window_x;
 	#else
 	if (vga_state.vga_reg.mode & 2)
-		ram_pos = (vga_state.line - 13)/2 * vga_state.vga_width/2 + !!(vga_state.vga_reg.mode & 4) * (1 << 27);
+		ram_pos = (vga_state.line - 13)/2 * vga_state.vga_width/2 + !!(vga_state.vga_reg.mode & 4) * (1 << 17);
 	else
 		ram_pos = (vga_state.line - 13) * vga_state.vga_width;
 	#endif
@@ -177,7 +177,7 @@ void vga_render_line() {
 void vga_io_write(uint32_t addr, uint32_t data) {
 	addr &= 0xFC;
 	if (addr == 0) {
-		if (data != 0 && !vga_state.vga_reg.mode)
+		if ((data & 1) && !(vga_state.vga_reg.mode & 1))
 			fprintf(stderr, "[VGA] MAIN SCREEN TURN ON");
 		vga_state.vga_reg.mode = data;
 	} if (addr == 4) {
