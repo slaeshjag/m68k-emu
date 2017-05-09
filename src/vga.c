@@ -34,8 +34,8 @@ void vga_init(bool new_mode) {
 	vga_state.screen = SDL_SetVideoMode(vga_state.vga_width, 480, 16, SDL_SWSURFACE);
 	vga_state.pixbuf = SDL_CreateRGBSurface(0, vga_state.vga_width, 480, 16, 0xF800, 0x7E0, 0x1F, 0x0);
 
-	for (i = 0; i < 800*525; i++)
-		vga_state.buff[i] = 0;
+	//for (i = 0; i < 800*525; i++)
+	//	vga_state.buff[i] = 0;
 
 	vga_state.line = 0;
 	vga_state.ticks = SDL_GetTicks();
