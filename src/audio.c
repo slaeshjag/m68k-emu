@@ -23,12 +23,15 @@ static void _copy_audio(void *junk, uint8_t *data, int bytes) {
 	//fprintf(stderr, "bytes=%i\n", bytes);
 	
 	for (i = 0; i < (bytes >> 2);) {
-		for (; audio_buffer_pos < (64 << buffer_size); audio_buffer_pos++, i++) {
+		for (; audio_buffer_pos < (64 << buffer_size) && i < (bytes >> 2); audio_buffer_pos++, i++) {
 			if (i == bytes)
 				return;
 			buff[i<<1] = 0x100 * (audio_buffer[audio_buffer_pos<<1] - 128);
 			buff[(i<<1)+1] = 0x100 * (audio_buffer[(audio_buffer_pos<<1) + 1] - 128);
 		}
+		
+		if (audio_buffer_pos < (64 << buffer_size))
+			return;
 
 		int8_t *read_buff = mem->llram + (buffer * (128 << buffer_size)) + buffer_pos;
 	
