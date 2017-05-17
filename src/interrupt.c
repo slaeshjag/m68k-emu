@@ -28,7 +28,7 @@ int interrupt_get_ipl() {
 		if (is.int_flag[i])
 			ipl = is.priority[i] & 0x7;
 	}
-
+	
 	return ipl;	
 }
 

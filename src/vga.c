@@ -3,6 +3,7 @@
 #include "mem.h"
 #include "chipset.h"
 #include "palette.h"
+#include "timer.h"
 #include <SDL/SDL.h>
 #include <arpa/inet.h>
 
@@ -48,6 +49,7 @@ void vga_render_line() {
 	uint16_t pix;
 	uint16_t *next_pb = vga_state.pixbuf->pixels;
 
+	timer_run(1000);
 	if (vga_state.line < 13 || vga_state.line >= (480+13))
 		goto end;
 	
