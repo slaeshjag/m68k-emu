@@ -212,6 +212,7 @@ void m68k_write_memory_32(unsigned int address, unsigned int value) {
 void mem_init(const char *filename, bool new_map) {
 	FILE *fp;
 	size_t sz;
+	int i;
 
 	fprintf(stderr, "using %s memory layout\n", new_map?"new":"old");
 
@@ -233,6 +234,12 @@ void mem_init(const char *filename, bool new_map) {
 	rewind(fp);
 	fread(mem->rom, sz, 1, fp);
 	fclose(fp);
+
+	srand(time(NULL));
+	for (i = 0; i < 512*512; i++)
+		((uint16_t *) mem->llram)[i] = rand();
+	for (i = 0; i < MEM_SIZE/2; i++)
+		((uint16_t *) mem->mram)[i] = rand();
 
 	return;
 }

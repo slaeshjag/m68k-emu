@@ -7,6 +7,8 @@
 #include <SDL/SDL.h>
 #include <arpa/inet.h>
 
+#include "spi_keyboard.h"
+
 struct VgaState vga_state;
 
 void vga_init(bool new_mode) {
@@ -14,6 +16,7 @@ void vga_init(bool new_mode) {
 	uint16_t *pal_data;
 
 	vga_state.keyboard = 0;
+	vga_state.vga_reg.mode = 1;
 
 	if (!new_mode) {
 		vga_state.buff = mem_decode_addr(0x00081800, &i);
@@ -32,8 +35,8 @@ void vga_init(bool new_mode) {
 	vga_state.screen = SDL_SetVideoMode(vga_state.vga_width, 480, 16, SDL_SWSURFACE);
 	vga_state.pixbuf = SDL_CreateRGBSurface(0, vga_state.vga_width, 480, 16, 0xF800, 0x7E0, 0x1F, 0x0);
 
-	for (i = 0; i < 800*525; i++)
-		vga_state.buff[i] = 0;
+	//for (i = 0; i < 800*525; i++)
+	//	vga_state.buff[i] = 0;
 
 	vga_state.line = 0;
 	vga_state.ticks = SDL_GetTicks();
@@ -44,9 +47,9 @@ void vga_init(bool new_mode) {
 
 
 void vga_render_line() {
-	uint8_t *ptr;
+	uint8_t *ptr, data;
 	int i, ram_pos;
-	uint16_t pix;
+	uint16_t pix, white = 0xFFFF, black = 0x0000;
 	uint16_t *next_pb = vga_state.pixbuf->pixels;
 
 	timer_run(1000);
@@ -59,12 +62,34 @@ void vga_render_line() {
 	ram_pos *= 800;
 	ram_pos += vga_state.reg.window_x;
 	#else
-	ram_pos = (vga_state.line - 13) * vga_state.vga_width;
+	if (vga_state.vga_reg.mode & 2)
+		ram_pos = (vga_state.line - 13)/2 * vga_state.vga_width/2 + !!(vga_state.vga_reg.mode & 4) * (1 << 17);
+	else
+		ram_pos = (vga_state.line - 13) * vga_state.vga_width;
 	#endif
 	next_pb += (vga_state.line - 13) * vga_state.vga_width;
 	
 	for (i = 0; i < vga_state.vga_width; i++) {
-		ptr = &vga_state.pal[vga_state.buff[ram_pos] * 2];
+		if (!(vga_state.vga_reg.mode & 1)) {
+			pix = 0;
+			goto got_pix;
+		}
+
+		data = vga_state.buff[ram_pos];
+		ptr = &vga_state.pal[data * 2];
+		if (vga_state.vga_reg.cursor_x < i && vga_state.vga_reg.cursor_x + VGA_CURSOR_W > i && vga_state.vga_reg.cursor_y < vga_state.line - 13 && vga_state.vga_reg.cursor_y + VGA_CURSOR_H > vga_state.line - 13) {
+			int x, y;
+			x = i - vga_state.vga_reg.cursor_x;
+			y = vga_state.line - 13 - vga_state.vga_reg.cursor_y;
+			if (!(vga_state.vga_reg.cursor_data[VGA_CURSOR_W * y + x] & 02))
+				goto no_cursor;
+			if (vga_state.vga_reg.cursor_data[VGA_CURSOR_W * y + x] & 01)
+				ptr = (void *) &white;
+			else
+				ptr = (void *) &black;
+		}
+
+	no_cursor:
 		if (!mem->new_map) {
 			pix = ((*ptr++) << 8);
 			pix |= *ptr;
@@ -72,8 +97,14 @@ void vga_render_line() {
 			pix = *ptr;
 			pix |= (*(ptr + 1) << 8);
 		}
+	got_pix:
 		*next_pb = pix;
-		ram_pos++, next_pb++;
+		if (vga_state.vga_reg.mode & 2) {
+			if (i & 1)
+				ram_pos++;
+		} else
+			ram_pos++;
+		next_pb++;
 		#ifdef VGA_WINDOW_SCROLL
 		if (ram_pos >= 800*525)
 			ram_pos = 0;
@@ -86,7 +117,11 @@ void vga_render_line() {
 	if (vga_state.line == 525) {
 		SDL_Event event_sdl;
 		//chipset_int_set(CHIPSET_INT_NUM_VGA_VSYNC, 1);
-		interrupt_trig(CHIPSET_INT_NUM_VGA_VSYNC);
+		static int count = 100;
+		if(count-- == 0) {
+			interrupt_trig(CHIPSET_INT_NUM_VGA_VSYNC);
+			count = 100;
+		}
 		
 		vga_state.line = 0;
 		SDL_BlitSurface(vga_state.pixbuf, NULL, vga_state.screen, NULL);
@@ -101,32 +136,29 @@ void vga_render_line() {
 		while (SDL_PollEvent(&event_sdl)) {
 			switch (event_sdl.type) {
 				case SDL_KEYDOWN:
-					if (event_sdl.key.keysym.sym == SDLK_LEFT)
-						vga_state.keyboard |= 0x1;
-					else if (event_sdl.key.keysym.sym == SDLK_RIGHT)
-						vga_state.keyboard |= 0x2;
-					else if (event_sdl.key.keysym.sym == SDLK_UP)
-						vga_state.keyboard |= 0x4;
-					else if (event_sdl.key.keysym.sym == SDLK_DOWN)
-						vga_state.keyboard |= 0x8;
-					else if (event_sdl.key.keysym.sym == SDLK_SPACE)
-						vga_state.keyboard |= 0x10;
-					else if (event_sdl.key.keysym.sym == SDLK_ESCAPE)
-						vga_state.keyboard |= 0x20;
+					spi_keyboard_push_event(true, event_sdl.key.keysym.scancode);
 					break;
 				case SDL_KEYUP:
-					if (event_sdl.key.keysym.sym == SDLK_LEFT)
-						vga_state.keyboard &= ~0x1;
-					else if (event_sdl.key.keysym.sym == SDLK_RIGHT)
-						vga_state.keyboard &= ~0x2;
-					else if (event_sdl.key.keysym.sym == SDLK_UP)
-						vga_state.keyboard &= ~0x4;
-					else if (event_sdl.key.keysym.sym == SDLK_DOWN)
-						vga_state.keyboard &= ~0x8;
-					else if (event_sdl.key.keysym.sym == SDLK_SPACE)
-						vga_state.keyboard &= ~0x10;
-					else if (event_sdl.key.keysym.sym == SDLK_ESCAPE)
-						vga_state.keyboard &= ~0x20;
+					spi_keyboard_push_event(false, event_sdl.key.keysym.scancode);
+					break;
+				case SDL_MOUSEBUTTONDOWN:
+					if (event_sdl.button.button == SDL_BUTTON_LEFT)
+						spi_keyboard_push_event(true, 192);
+					if (event_sdl.button.button == SDL_BUTTON_MIDDLE)
+						spi_keyboard_push_event(true, 193);
+					if (event_sdl.button.button == SDL_BUTTON_RIGHT)
+						spi_keyboard_push_event(true, 194);
+					break;
+				case SDL_MOUSEBUTTONUP:
+					if (event_sdl.button.button == SDL_BUTTON_LEFT)
+						spi_keyboard_push_event(false, 192);
+					if (event_sdl.button.button == SDL_BUTTON_MIDDLE)
+						spi_keyboard_push_event(false, 193);
+					if (event_sdl.button.button == SDL_BUTTON_RIGHT)
+						spi_keyboard_push_event(false, 194);
+					break;
+				case SDL_MOUSEMOTION:
+					spi_keyboard_digitizer_set(event_sdl.motion.x, event_sdl.motion.y);
 					break;
 				case SDL_QUIT:
 					exit(0);
@@ -141,4 +173,31 @@ void vga_render_line() {
 	vga_state.keyboard |= 0xC0;
 
 	return;
+}
+
+
+void vga_io_write(uint32_t addr, uint32_t data) {
+	addr &= 0xFC;
+	if (addr == 0) {
+		if ((data & 1) && !(vga_state.vga_reg.mode & 1))
+			fprintf(stderr, "[VGA] MAIN SCREEN TURN ON");
+		vga_state.vga_reg.mode = data;
+	} if (addr == 4) {
+		fprintf(stderr, "[VGA] Brightness is now %i\n", data);
+	} if (addr == 0x10) {
+		vga_state.vga_reg.pal_pos = data & 0xFF;
+	} if (addr == 0x14) {
+		uint16_t *pal_addr = (void *) vga_state.pal;
+		pal_addr[vga_state.vga_reg.pal_pos & 0xFF] = data;
+		vga_state.vga_reg.pal_pos++;
+	} if (addr == 0x20) {
+		vga_state.vga_reg.cursor_pos = data;
+	} if (addr == 0x24) {
+		vga_state.vga_reg.cursor_data[vga_state.vga_reg.cursor_pos % (VGA_CURSOR_W * VGA_CURSOR_H)] = data;
+		vga_state.vga_reg.cursor_pos++;
+	} if (addr == 0x28) {
+		vga_state.vga_reg.cursor_x = data & 0x3FF;
+	} if (addr == 0x2C) {
+		vga_state.vga_reg.cursor_y = data & 0x1FF;
+	}
 }
