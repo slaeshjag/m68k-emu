@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdbool.h>
 #include "vga.h"
 #include "mem.h"
 #include "chipset.h"
@@ -41,6 +42,7 @@ void vga_init(bool new_mode) {
 	vga_state.line = 0;
 	vga_state.ticks = SDL_GetTicks();
 	vga_state.reg.window_x = vga_state.reg.window_y = 0;
+	SDL_ShowCursor(false);
 
 	return;
 }
@@ -77,7 +79,7 @@ void vga_render_line() {
 
 		data = vga_state.buff[ram_pos];
 		ptr = &vga_state.pal[data * 2];
-		if (vga_state.vga_reg.cursor_x < i && vga_state.vga_reg.cursor_x + VGA_CURSOR_W > i && vga_state.vga_reg.cursor_y < vga_state.line - 13 && vga_state.vga_reg.cursor_y + VGA_CURSOR_H > vga_state.line - 13) {
+		if (vga_state.vga_reg.cursor_x <= i && vga_state.vga_reg.cursor_x + VGA_CURSOR_W > i && vga_state.vga_reg.cursor_y <= vga_state.line - 13 && vga_state.vga_reg.cursor_y + VGA_CURSOR_H > vga_state.line - 13) {
 			int x, y;
 			x = i - vga_state.vga_reg.cursor_x;
 			y = vga_state.line - 13 - vga_state.vga_reg.cursor_y;
