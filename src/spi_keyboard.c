@@ -4,6 +4,7 @@
 #include "vga.h"
 #include "spi_keyboard.h"
 #include "scancodes.h"
+#include "audio.h"
 
 static int ready = 0;
 static enum SPIKeyboardCommand cmd = SPI_KEYBOARD_CMD_NONE;
@@ -163,6 +164,16 @@ uint8_t spi_keyboard_send_receive(uint8_t data) {
 			if (data == 0xFF)
 				cmd = SPI_KEYBOARD_CMD_NONE;
 			return data;
+		case SPI_KEYBOARD_CMD_VOLUME:
+			keyboard_buffer.byte_count++;
+			if (keyboard_buffer.byte_count == 1) {
+				audio_set_volume_l(data);
+				return 0xFF;
+			} else if (keyboard_buffer.byte_count == 2) {
+				audio_set_volume_r(data);
+				cmd = SPI_KEYBOARD_CMD_NONE;
+				return 0xFF;
+			}
 		case SPI_KEYBOARD_CMD_POWER_OFF:
 			cmd = SPI_KEYBOARD_CMD_NONE;
 			// TODO: Power off
