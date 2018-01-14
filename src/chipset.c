@@ -6,6 +6,7 @@
 #include "debug.h"
 #include "audio.h"
 #include "interrupt.h"
+#include "timer.h"
 
 
 //static int interrupt[8];
@@ -57,6 +58,8 @@ void chipset_int_set(int int_no, int set_unset) {
 void chipset_new_write_io(unsigned int addr, unsigned int data) {
 	if ((addr & 0xF00) == CHIPSET_IO_PORT_NEW_INTERRUPT) {
 		interrupt_do_write_lword(addr, data);
+	} else if ((addr & 0xF00) == CHIPSET_IO_PORT_NEW_TIMER) {
+		timer_do_write_lword(addr, data);
 	} else if ((addr & 0xF00) == CHIPSET_IO_PORT_NEW_SPI_BASE) {
 		//fprintf(stderr, "SPI write to addr 0x%X: 0x%X\n", addr, data);
 		spi_new_handle_write(addr, data);
@@ -88,6 +91,8 @@ unsigned int chipset_new_read_io(unsigned int addr) {
 	unsigned int data;
 	if ((addr & 0xF00) == CHIPSET_IO_PORT_NEW_INTERRUPT) {
 		return interrupt_do_read_lword(addr);
+	} else if ((addr & 0xF00) == CHIPSET_IO_PORT_NEW_TIMER) {
+		return timer_do_read_lword(addr);
 	} else if ((addr & 0xF00) == CHIPSET_IO_PORT_NEW_SPI_BASE) {
 		data = spi_new_handle_read(addr);
 		//fprintf(stderr, "SPI read from addr 0x%X: 0x%X\n", addr, data);

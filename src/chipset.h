@@ -10,6 +10,7 @@ uint32_t chipset_read_io(unsigned int addr, bool new_map);
 void chipset_set_boot_switch(int sw);
 
 enum ChipsetIntNum {
+	CHIPSET_INT_NUM_TIMER = 2,
 	CHIPSET_INT_NUM_SPI_DONE = 8,
 	CHIPSET_INT_NUM_VGA_VSYNC = 10,
 	CHIPSET_INT_NUM_AUDIO,
@@ -19,6 +20,7 @@ enum ChipsetIntNum {
 
 enum ChipsetIoPortNew {
 	CHIPSET_IO_PORT_NEW_INTERRUPT = 0x0,
+	CHIPSET_IO_PORT_NEW_TIMER = 0x200,
 	CHIPSET_IO_PORT_NEW_SPI_BASE = 0x800,
 	CHIPSET_IO_PORT_NEW_UART_BASE = 0x900,
 	CHIPSET_IO_PORT_NEW_VGA_BASE = 0xA00,
