@@ -15,6 +15,8 @@ static int8_t buffer = 0;
 static volatile int8_t thread_ack = 0;
 static uint8_t audio_buffer[1024];
 static int audio_buffer_pos = 512;
+static uint8_t audio_volume_l = 255;
+static uint8_t audio_volume_r = 255;
 
 
 static void _copy_audio(void *junk, uint8_t *data, int bytes) {
@@ -26,8 +28,8 @@ static void _copy_audio(void *junk, uint8_t *data, int bytes) {
 		for (; audio_buffer_pos < (64 << buffer_size) && i < (bytes >> 2); audio_buffer_pos++, i++) {
 			if (i == bytes)
 				return;
-			buff[i<<1] = 0x100 * (audio_buffer[audio_buffer_pos<<1] - 128);
-			buff[(i<<1)+1] = 0x100 * (audio_buffer[(audio_buffer_pos<<1) + 1] - 128);
+			buff[i<<1] = audio_volume_l * (audio_buffer[audio_buffer_pos<<1] - 128);
+			buff[(i<<1)+1] = audio_volume_r * (audio_buffer[(audio_buffer_pos<<1) + 1] - 128);
 		}
 		
 		if (audio_buffer_pos < (64 << buffer_size))
@@ -92,4 +94,14 @@ void audio_io_write(uint32_t addr, uint32_t data) {
 	} else {
 		fprintf(stderr, "[AUDIO] Unhandled write to port 0x%X\n", addr);
 	}
+}
+
+
+void audio_set_volume_l(uint8_t vol) {
+	audio_volume_l = vol;
+}
+
+
+void audio_set_volume_r(uint8_t vol) {
+	audio_volume_r = vol;
 }
