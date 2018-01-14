@@ -182,7 +182,12 @@ uint8_t spi_keyboard_send_receive(uint8_t data) {
 				else
 					keyboard_buffer.mouse_x = keyboard_buffer.new_mouse_x, keyboard_buffer.mouse_y = keyboard_buffer.new_mouse_y;
 				cmd = SPI_KEYBOARD_CMD_NONE;
+				
+				return data;
 			}
+			
+			return 0xFF;
+			
 		default:
 			fprintf(stderr, "[KBD] Unhandled command byte 0x%X\n", data);
 			cmd = SPI_KEYBOARD_CMD_NONE;
