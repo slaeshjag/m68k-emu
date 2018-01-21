@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include "chipset.h"
 
 struct InterruptState {
 	uint32_t		int_flag[32];

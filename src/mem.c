@@ -56,7 +56,7 @@ void *mem_decode_addr(unsigned int address, int *write) {
 		*write = 0;
 		return mem->llram;
 	}
-	fprintf(stderr, "ERROR: Invalid address %X\n", address);
+	fprintf(stderr, "Invalid address 0x%X (PC=0x%X\n", address, m68k_getpc());
 	return NULL;
 }
 
@@ -148,7 +148,7 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
 		if (address == 0xFFFFFFFF)
 			fprintf(stdout, "%c", (char) value);
 		else
-			fprintf(stderr, "Invalid write to %X\n", address);
+			fprintf(stderr, "Invalid write to 0x%X (PC=0x%X\n", address, m68k_getpc());
 		return;
 	}
 
@@ -173,7 +173,7 @@ void m68k_write_memory_16(unsigned int address, unsigned int value) {
 				return chipset_write_io(address, value, mem->new_map);
 		}
 
-		fprintf(stderr, "Invalid write to %X\n", address);
+		fprintf(stderr, "Invalid write to 0x%X (PC=0x%X\n", address, m68k_getpc());
 		return;
 	}
 	
@@ -198,7 +198,7 @@ void m68k_write_memory_32(unsigned int address, unsigned int value) {
 			if ((address & 0xFFF00000UL) == 0x200000UL)
 				return chipset_write_io(address, value, mem->new_map);
 		}
-		fprintf(stderr, "Invalid write to %X\n", address);
+		fprintf(stderr, "Invalid write to 0x%X (PC=0x%X\n", address, m68k_getpc());
 		return;
 	}
 

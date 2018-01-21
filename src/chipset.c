@@ -68,7 +68,7 @@ void chipset_new_write_io(unsigned int addr, unsigned int data) {
 	} else if ((addr & 0xF00) == CHIPSET_IO_PORT_NEW_SOUND_BASE) {
 		audio_io_write(addr, data);
 	} else if((addr & 0xF00) == CHIPSET_IO_PORT_NEW_DEBUG) {
-		printf("debug send @0x%X 0x%X\n", addr, data);
+		//printf("debug send @0x%X 0x%X\n", addr, data);
 		debug_send(data);
 	} else if ((addr & 0xF00) == CHIPSET_IO_PORT_NEW_VGA_BASE) {
 		vga_io_write(addr, data);
@@ -106,7 +106,7 @@ unsigned int chipset_new_read_io(unsigned int addr) {
 	} */else if((addr & 0xF00) == CHIPSET_IO_PORT_NEW_DEBUG) {
 		unsigned int d;
 		d = debug_recv();
-		printf("debug recv @0x%X 0x%X\n", addr, d);
+		//printf("debug recv @0x%X 0x%X\n", addr, d);
 		return d;
 	}
 
