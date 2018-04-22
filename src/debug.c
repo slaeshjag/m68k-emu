@@ -20,6 +20,9 @@ void debug_init() {
 		sock = -1;
 		return;
 	}
+	
+	printf("Attach gdb by using target remote :1234\n");
+	
 	listen(listensock, 1);
 	sock = accept(listensock, NULL, NULL);
 }

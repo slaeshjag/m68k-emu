@@ -19,6 +19,10 @@ static struct {
 
 	int mouse_x;
 	int mouse_y;
+	int vel_mouse_x;
+	int vel_mouse_y;
+	int old_mouse_x;
+	int old_mouse_y;
 	int new_mouse_x;
 	int new_mouse_y;
 	int byte_count;
@@ -128,11 +132,17 @@ uint8_t spi_keyboard_pop_event() {
 
 
 void spi_keyboard_digitizer_set(int x, int y) {
+	
+	keyboard_buffer.vel_mouse_x = x - keyboard_buffer.old_mouse_x;
+	keyboard_buffer.vel_mouse_y = y - keyboard_buffer.old_mouse_x;
+	
 	keyboard_buffer.new_mouse_x = x;
 	keyboard_buffer.new_mouse_y = y;
-	if (!(keyboard_buffer.flags & (1 << SPI_KEYBOARD_DIGITIZER_BIT)))
+	
+	
+	if (!(keyboard_buffer.flags & (1 << SPI_KEYBOARD_MOUSE_BIT)))
 		keyboard_buffer.mouse_x = x, keyboard_buffer.mouse_y = y;
-	keyboard_buffer.flags |= (1 << SPI_KEYBOARD_DIGITIZER_BIT);
+	keyboard_buffer.flags |= (1 << SPI_KEYBOARD_MOUSE_BIT);
 }
 
 
@@ -143,6 +153,7 @@ uint8_t spi_keyboard_control() {
 
 
 uint8_t spi_keyboard_send_receive(uint8_t data) {
+	int temp_x, temp_y;
 	if (!ready)
 		return ~0;
 	counter++;
@@ -181,15 +192,17 @@ uint8_t spi_keyboard_send_receive(uint8_t data) {
 		case SPI_KEYBOARD_CMD_DIGITIZER:
 			keyboard_buffer.byte_count++;
 			if (keyboard_buffer.byte_count == 1)
-				return keyboard_buffer.mouse_x >> 8;
+				return 0xFF;
 			if (keyboard_buffer.byte_count == 2)
-				return keyboard_buffer.mouse_x & 0xFF;
+				return keyboard_buffer.mouse_x >> 8;
 			if (keyboard_buffer.byte_count == 3)
+				return keyboard_buffer.mouse_x & 0xFF;
+			if (keyboard_buffer.byte_count == 4)
 				return keyboard_buffer.mouse_y >> 8;
-			if (keyboard_buffer.byte_count == 4) {
+			if (keyboard_buffer.byte_count == 5) {
 				data = keyboard_buffer.mouse_y & 0xFF;
 				if ((keyboard_buffer.new_mouse_x == keyboard_buffer.mouse_x) && (keyboard_buffer.new_mouse_y == keyboard_buffer.mouse_y))
-					keyboard_buffer.flags &= ~(1 << SPI_KEYBOARD_DIGITIZER_BIT);
+					keyboard_buffer.flags &= ~(1 << SPI_KEYBOARD_MOUSE_BIT);
 				else
 					keyboard_buffer.mouse_x = keyboard_buffer.new_mouse_x, keyboard_buffer.mouse_y = keyboard_buffer.new_mouse_y;
 				cmd = SPI_KEYBOARD_CMD_NONE;
@@ -198,7 +211,35 @@ uint8_t spi_keyboard_send_receive(uint8_t data) {
 			}
 			
 			return 0xFF;
-			
+		
+		case SPI_KEYBOARD_CMD_MOUSE_EVENT:
+			temp_x = keyboard_buffer.vel_mouse_x;
+			temp_y = keyboard_buffer.vel_mouse_y;
+			keyboard_buffer.byte_count++;
+			if (keyboard_buffer.byte_count == 1)
+				return 0xFF;
+			if (keyboard_buffer.byte_count == 2)
+				return temp_x >> 8;
+			if (keyboard_buffer.byte_count == 3)
+				return temp_x & 0xFF;
+			if (keyboard_buffer.byte_count == 4)
+				return temp_y >> 8;
+			if (keyboard_buffer.byte_count == 5) {
+				data = temp_y & 0xFF;
+				
+				keyboard_buffer.old_mouse_x = keyboard_buffer.mouse_x;
+				keyboard_buffer.old_mouse_y = keyboard_buffer.mouse_y;
+				
+				if ((keyboard_buffer.new_mouse_x == keyboard_buffer.mouse_x) && (keyboard_buffer.new_mouse_y == keyboard_buffer.mouse_y))
+					keyboard_buffer.flags &= ~(1 << SPI_KEYBOARD_MOUSE_BIT);
+				else
+					keyboard_buffer.mouse_x = keyboard_buffer.new_mouse_x, keyboard_buffer.mouse_y = keyboard_buffer.new_mouse_y;
+				cmd = SPI_KEYBOARD_CMD_NONE;
+				
+				return data;
+			}
+			return 0xFF;
+		
 		default:
 			fprintf(stderr, "[KBD] Unhandled command byte 0x%X\n", data);
 			cmd = SPI_KEYBOARD_CMD_NONE;
