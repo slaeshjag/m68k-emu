@@ -181,12 +181,14 @@ uint8_t spi_keyboard_send_receive(uint8_t data) {
 		case SPI_KEYBOARD_CMD_DIGITIZER:
 			keyboard_buffer.byte_count++;
 			if (keyboard_buffer.byte_count == 1)
-				return keyboard_buffer.mouse_x >> 8;
+				return 0xFF;
 			if (keyboard_buffer.byte_count == 2)
-				return keyboard_buffer.mouse_x & 0xFF;
+				return keyboard_buffer.mouse_x >> 8;
 			if (keyboard_buffer.byte_count == 3)
+				return keyboard_buffer.mouse_x & 0xFF;
+			if (keyboard_buffer.byte_count == 4)
 				return keyboard_buffer.mouse_y >> 8;
-			if (keyboard_buffer.byte_count == 4) {
+			if (keyboard_buffer.byte_count == 5) {
 				data = keyboard_buffer.mouse_y & 0xFF;
 				if ((keyboard_buffer.new_mouse_x == keyboard_buffer.mouse_x) && (keyboard_buffer.new_mouse_y == keyboard_buffer.mouse_y))
 					keyboard_buffer.flags &= ~(1 << SPI_KEYBOARD_DIGITIZER_BIT);
