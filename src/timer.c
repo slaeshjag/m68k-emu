@@ -78,13 +78,13 @@ void timer_do_write_lword(uint32_t addr, uint32_t data) {
 		timer.interrupt_enable = data & 0xF;
 		timer.prescaler = data >> 16;
 	} else if ((addr & 0xFC) == 0x4) {
-		timer.interrupt_flag = data & 0xF;
+		timer.interrupt_flag &= ~(data & 0xF);
 	} else if (addr >= 0x10) {
 		if ((addr & 0xC) == 0x4)
-			timer.timer[((addr & 0x30) >> 4) - 1].count = data;
+			timer.timer[((addr & 0x70) >> 4) - 1].count = data;
 		else if ((addr & 0xC) == 0x8)
-			timer.timer[((addr & 0x30) >> 4) - 1].compare = data;
-		else if (!(addr & 0x8)) {
+			timer.timer[((addr & 0x70) >> 4) - 1].compare = data;
+		else if (!(addr & 0xC)) {
 			uint32_t oldstat = timer.timer[((addr & 0x70) >> 4) - 1].status;
 			if ((!(oldstat & 1)) && (data & 0x1)) {
 				timer.timer[((addr & 0x70) >> 4) - 1].count = 0;
