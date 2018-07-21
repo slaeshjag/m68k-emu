@@ -10,8 +10,10 @@ struct TimerEntry {
 };
 
 struct Timer {
-	uint32_t			interrupt_enable;
-	uint32_t			interrupt_flag;
+	uint8_t				interrupt_enable;
+	uint8_t				interrupt_flag;
+	uint16_t			prescaler;
+	uint16_t			prescaler_count;
 
 	/* TimerEntry 0 på 0x10, 1 på 0x20 ... */
 	struct TimerEntry		timer[4];
