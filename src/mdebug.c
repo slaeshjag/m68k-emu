@@ -15,6 +15,7 @@ struct MemoryBlock {
 
 static struct MemoryBlock *_mem_block;
 static int _mem_blocks = 0;
+static int _check_enabled = 0;
 
 void mdebug_write(uint8_t value) {
 	struct MemoryBlock mblk;
@@ -29,13 +30,17 @@ void mdebug_write(uint8_t value) {
 			q = _mem_blocks++;
 			_mem_block = realloc(_mem_block, sizeof(*_mem_block) * _mem_blocks);
 			_mem_block[q] = mblk;
-		} else {
+		} else if (_data_buff[0] == 1) {
 			for (i = 0; i < _mem_blocks; i++) {
 				if (_mem_block[i].addr == mblk.addr) {
 					memmove(&_mem_block[i], &_mem_block[i + 1], (_mem_blocks - 1 - i) * sizeof(*_mem_block));
 					_mem_blocks--;
 				}
 			}
+		} else if (_data_buff[0] == 2) {
+			_check_enabled = 0;
+		} else if (_data_buff[0] == 3) {
+			_check_enabled = 1;
 		}
 	}
 }
@@ -43,6 +48,9 @@ void mdebug_write(uint8_t value) {
 
 int mdebug_check_pointer(uint32_t pointer, int size) {
 	int i;
+
+	if (!_check_enabled)
+		return 1;
 
 	for (i = 0; i < _mem_blocks; i++) {
 		if (_mem_block[i].addr + _mem_block[i].len < pointer)

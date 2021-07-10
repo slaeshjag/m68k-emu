@@ -62,6 +62,16 @@ void *mem_decode_addr(unsigned int address, int *write) {
 }
 
 
+static void _do_check_pointer(unsigned int address, int size, int op) {
+	if (address >= 0x81FFFF00 && address < 0x83F00000)		
+		if (!mdebug_check_pointer(address, size)) {
+			fprintf(stderr, "Invalid %s at 0x%.8X size=%i, PC=0x%.8X\n", op?"write":"read", address, size, m68k_getpc());
+			exit(1);
+		}
+
+}
+
+
 unsigned int m68k_read_memory_8(unsigned int address) {
 	uint8_t *ptr;
 	int write;
@@ -71,6 +81,8 @@ unsigned int m68k_read_memory_8(unsigned int address) {
 		M68000_BusError(address, BUS_ERROR_READ);
 		return 0;
 	}
+
+	_do_check_pointer(address, 1, 0);
 
 	if (mem->new_map) {
 		if (!write && (address & 0xFFF00000UL) == 0x100000UL)
@@ -92,6 +104,8 @@ unsigned int m68k_read_memory_16(unsigned int address) {
 		M68000_BusError(address, BUS_ERROR_READ);
 		return 0;
 	}
+	
+	_do_check_pointer(address, 2, 0);
 
 	if (mem->new_map) {
 		if (!write && (address & 0xFFF00000UL) == 0x200000UL)
@@ -115,6 +129,9 @@ unsigned int m68k_read_memory_32(unsigned int address) {
 		M68000_BusError(address, BUS_ERROR_READ);
 		return 0;
 	}
+	
+	_do_check_pointer(address, 4, 0);
+	
 	if (mem->new_map) {
 		if (!write && (address & 0xFFF00000UL) == 0x100000UL)
 			data = chipset_read_io(address, mem->new_map), ptr = (void *) &tmp;
@@ -146,6 +163,8 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
 		return;
 	}
 	
+	_do_check_pointer(address, 1, 1);
+	
 	if (!write) {
 		if (mem->new_map) {
 			if ((address & 0xFFF00000UL) == 0x100000UL)
@@ -174,6 +193,9 @@ void m68k_write_memory_16(unsigned int address, unsigned int value) {
 		M68000_BusError(address, BUS_ERROR_WRITE);
 		return;
 	}
+
+	_do_check_pointer(address, 2, 1);
+
 	if (!write) {
 		if (mem->new_map) {
 			if ((address & 0xFFF00000UL) == 0x100000UL)
@@ -200,6 +222,9 @@ void m68k_write_memory_32(unsigned int address, unsigned int value) {
 		M68000_BusError(address, BUS_ERROR_WRITE);
 		return;
 	}
+	
+	_do_check_pointer(address, 4, 1);
+	
 	if (!write) {
 		if (mem->new_map) {
 			if ((address & 0xFFF00000UL) == 0x100000UL)
