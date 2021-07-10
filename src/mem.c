@@ -19,6 +19,7 @@
 
 #include "cpu/m68000.h"
 #include "mem.h"
+#include "mdebug.h"
 #include "chipset.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -56,7 +57,7 @@ void *mem_decode_addr(unsigned int address, int *write) {
 		*write = 0;
 		return mem->llram;
 	}
-	fprintf(stderr, "Invalid address 0x%X (PC=0x%X\n", address, m68k_getpc());
+	fprintf(stderr, "Invalid address 0x%X (PC=0x%X)\n", address, m68k_getpc());
 	return NULL;
 }
 
@@ -131,6 +132,15 @@ unsigned int m68k_read_memory_32(unsigned int address) {
 void m68k_write_memory_8(unsigned int address, unsigned int value) {
 	uint8_t *ptr;
 	int write;
+
+	if (address == 0xFFFFFFFE) {
+		mdebug_write(value);
+		return;
+	}
+
+	if (address == 0xFFFFFFFF)
+		return (void) fwrite(&value, 1, 1, stdout);
+
 	if (!(ptr = mem_decode_addr(address, &write))) {
 		M68000_BusError(address, BUS_ERROR_WRITE);
 		return;
