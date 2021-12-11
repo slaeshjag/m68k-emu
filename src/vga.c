@@ -214,7 +214,7 @@ void vga_io_write(uint32_t addr, uint32_t data) {
 	} if (addr == 0x14) {
 		uint16_t *pal_addr = (void *) vga_state.pal;
 		pal_addr[vga_state.vga_reg.pal_pos & 0xFF] = data;
-		vga_state.vga_reg.pal_pos++;
+		//vga_state.vga_reg.pal_pos++;
 	} if (addr == 0x20) {
 		vga_state.vga_reg.cursor_pos = data;
 	} if (addr == 0x24) {
