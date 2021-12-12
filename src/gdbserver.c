@@ -163,7 +163,7 @@ static void _reply(GdbServer *server, const uint8_t *s, size_t len) {
 
 	for (int i = 0; i < len; i++) {
 		server->send_byte(s[i]);
-		checksum += i;
+		checksum += s[i];
 	}
 
 	sprintf((char *) checksum_str, "%hhX", checksum);
