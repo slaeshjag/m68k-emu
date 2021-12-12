@@ -1,6 +1,8 @@
 #ifndef GDBSERVER_H_
 #define GDBSERVER_H_
 
+#include <semaphore.h>
+
 #define GDB_SERVER_HEADER '$'
 #define GDB_SERVER_FOOTER '#'
 #define GDB_SERVER_ESCAPE '}'
@@ -44,6 +46,14 @@ typedef struct GdbServer GdbServer;
 struct GdbServer {
 	void (*send_byte)(uint8_t c);
 	uint8_t (*recv_byte)();
+
+	pthread_t thread;
+	sem_t recv_sem;
+	sem_t recv_ack_sem;
+	uint8_t c;
 };
+
+GdbServer *gdbserver_init(uint8_t (*recv_byte)(), void (*send_byte)(uint8_t));
+void gdbserver_run(GdbServer *server);
 
 #endif

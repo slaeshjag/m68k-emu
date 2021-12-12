@@ -3,6 +3,8 @@
 #include <string.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <pthread.h>
+#include <semaphore.h>
 
 #include "gdbserver.h"
 
@@ -300,15 +302,62 @@ static void _run_command(GdbServer *server, uint8_t *buf, size_t len) {
 	}
 }
 
+void *_recv_thread(void *data) {
+	GdbServer *server = data;
+	uint8_t c;
+
+	for (;;) {
+		c = server->recv_byte();
+
+		if (c == GDB_SERVER_BREAK) {
+			//TODO: break cpu
+		}
+		
+		sem_wait(&server->recv_ack_sem);
+		//TODO: figure out state, use it to filter out fake breaks inside commands
+		server->c = c;
+		sem_post(&server->recv_sem);
+	}
+
+}
+
+static uint8_t _recv_internal(GdbServer *server) {
+	uint8_t c;
+
+	sem_wait(&server->recv_sem);
+	c = server->c;
+	sem_post(&server->recv_ack_sem);
+
+	return c;
+}
+
+GdbServer *gdbserver_init(uint8_t (*recv_byte)(), void (*send_byte)(uint8_t)) {
+	GdbServer *server = NULL;
+
+	if (!(server = malloc(sizeof (GdbServer)))) {
+		return NULL;
+	}
+
+	server->recv_byte = recv_byte;
+	server->send_byte = send_byte;
+
+	sem_init(&server->recv_sem, 0, 0);
+	sem_init(&server->recv_ack_sem, 0, 0);
+
+	return server;
+}
+
 
 void gdbserver_run(GdbServer *server) {
 	uint8_t buf[300], c;
 	ParseState state = PARSE_STATE_HEADER, state_next;
 
+	pthread_create(&server->thread, NULL, _recv_thread, server);
+
 	int i = 0;
 	for (;;) {
 
-		c = server->recv_byte();
+		c = _recv_internal(server);
 		state_next = state;
 
 		switch (state) {
