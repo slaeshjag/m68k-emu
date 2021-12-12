@@ -161,9 +161,24 @@ static void _reply(GdbServer *server, const uint8_t *s, size_t len) {
 	server->send_byte(GDB_SERVER_HEADER);
 
 	for (int i = 0; i < len; i++) {
-		//TODO: escape characters
-		server->send_byte(s[i]);
-		checksum += s[i];
+		uint8_t c;
+
+		switch (s[i]) {
+			case GDB_SERVER_HEADER:
+			case GDB_SERVER_FOOTER:
+			case GDB_SERVER_ESCAPE:
+				server->send_byte(GDB_SERVER_ESCAPE);
+				checksum += GDB_SERVER_ESCAPE;
+				c = s[i] ^ GDB_SERVER_ESCAPE_FLAG;
+				break;
+
+			default:
+				c = s[i];
+				break;
+		}
+
+		server->send_byte(c);
+		checksum += c;
 	}
 
 	sprintf((char *) checksum_str, "%02hhX", checksum);
@@ -257,7 +272,7 @@ void gdbserver_run(GdbServer *server) {
 				break;
 
 			case PARSE_STATE_ESCAPE:
-				buf[i++] = c ^ 0x20;
+				buf[i++] = c ^ GDB_SERVER_ESCAPE_FLAG;
 
 		}
 
