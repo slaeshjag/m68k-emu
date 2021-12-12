@@ -108,6 +108,17 @@ static void _cmd_step_signal(GdbServer *server, char *arg){
 }
 
 static void _cmd_mem_read(GdbServer *server, char *arg){
+	uint32_t addr = 0, len = 0;
+	char buff[257] = { 0 }, byte[3];
+	int i;
+
+	sscanf(arg, "%X,%X", &addr, &len);
+
+	if (len > 128)
+		len = 128;
+	for (i = 0; i < len; i++)
+		sprintf(byte, "%.2X", get_byte(addr + i)), strcat(buff, byte);
+	_reply_simple(server, buff);
 }
 
 static void _cmd_mem_write(GdbServer *server, char *arg){
