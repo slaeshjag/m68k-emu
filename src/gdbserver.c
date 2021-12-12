@@ -130,6 +130,20 @@ static void _cmd_mem_read(GdbServer *server, char *arg){
 }
 
 static void _cmd_mem_write(GdbServer *server, char *arg){
+	uint32_t addr = 0, len = 0;
+	char byte[3] = {0};
+	int i;
+
+	int off = sscanf(arg, "%X,%X:", &addr, &len);
+
+	for (i = 0; i < len; i++) {
+		byte[0] = arg[off + i*2];
+		byte[1] = arg[off + i*2 + 1];
+
+		put_byte(addr + i, strtoul(byte, NULL, 16));
+	}
+
+	_reply_simple(server, GDB_SERVER_REPLY_OK);
 }
 
 static void _cmd_reg_read(GdbServer *server, char *arg){
