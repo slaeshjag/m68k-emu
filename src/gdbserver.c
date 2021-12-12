@@ -6,6 +6,8 @@
 
 #include "gdbserver.h"
 
+#include "cpu/m68000.h"
+
 typedef enum ParseState ParseState;
 enum ParseState {
 	PARSE_STATE_HEADER,
@@ -112,6 +114,19 @@ static void _cmd_mem_write(GdbServer *server, char *arg){
 }
 
 static void _cmd_reg_read(GdbServer *server, char *arg){
+	char reg[9], buff[8*18+1] = { 0 };
+	int i;
+
+	/* d0 .. d7, a0 .. a7, status register, program counter*/
+	for (i = 0; i < 8; i++)
+		sprintf(reg, "%.8X", m68k_dreg(regs, i)), strcat(buff, reg);
+	for (i = 0; i < 8; i++)
+		sprintf(reg, "%.8X", m68k_areg(regs, i)), strcat(buff, reg);
+	
+	sprintf(reg, "%.8X", regs.sr), strcat(buff, reg);
+	sprintf(reg, "%.8X", m68k_getpc()), strcat(buff, reg);
+
+	_reply_simple(server, buff);
 }
 
 static void _cmd_reg_write(GdbServer *server, char *arg){
