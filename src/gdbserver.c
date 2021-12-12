@@ -159,7 +159,6 @@ static void _reply(GdbServer *server, const uint8_t *s, size_t len) {
 	uint8_t checksum = 0;
 
 	server->send_byte(GDB_SERVER_HEADER);
-	server->send_byte(GDB_SERVER_FOOTER);
 
 	for (int i = 0; i < len; i++) {
 		server->send_byte(s[i]);
@@ -168,6 +167,7 @@ static void _reply(GdbServer *server, const uint8_t *s, size_t len) {
 
 	sprintf((char *) checksum_str, "%hhX", checksum);
 
+	server->send_byte(GDB_SERVER_FOOTER);
 	server->send_byte(checksum_str[0]);
 	server->send_byte(checksum_str[1]);
 }
@@ -186,6 +186,7 @@ static void _run_command(GdbServer *server, uint8_t *buf, size_t len) {
 
 	if (i == GDB_SERVER_COMMANDS) {
 		/* Unknown commands get empty reply */
+		fprintf(stderr, "unknown command %s\n", buf);
 		_reply_simple(server, "");
 	}
 }
