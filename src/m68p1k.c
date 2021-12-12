@@ -2,7 +2,9 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <pthread.h>
+#include <semaphore.h>
 #include "cpu/m68krash.h"
+#include "cpu/m68000.h"
 #include "mem.h"
 #include "vga.h"
 #include "signal.h"
@@ -13,20 +15,30 @@
 #include "spirom.h"
 #include "chipset.h"
 
+static bool _debug;
+
 void die(int arne) {
 	SDL_Quit();
 	exit(0);
 }
 
+
 static void *run_cpu(void *data) {
-	m68krash_start();
+	for (;;) {
+		if (_debug) {
+			debug_hook(m68k_getpc());
+			regs.spcflags |= SPCFLAG_MODE_SINGLESTEP;
+		}
+
+		m68krash_start();
+	}
 	
 	pthread_exit(NULL);
 }
 
 
 int main(int argc, char **argv) {
-	bool new_map, debug;
+	bool new_map; 
 	pthread_attr_t attr;
 	pthread_t thread;
 	
@@ -44,9 +56,10 @@ int main(int argc, char **argv) {
 		new_map = !strcasecmp(argv[1], "newspiboot");
 		chipset_set_boot_switch(1);
 	} 
-	debug = !strcasecmp(argv[2], "debug");
-	if (debug)
+	_debug = !strcasecmp(argv[2], "debug");
+	if (_debug) {
 		debug_init();
+	}
 	mem_init(argv[3], new_map);
 	vga_init(new_map);
 	uart_init();

@@ -10,8 +10,8 @@ BIN		=	$(TOPDIR)/bin/m68k-emu
 DBGFLAGS	=	-g -O3
 #General flags
 
-CFLAGS		+=	-Wall -I/usr/local/include/musashi $(DBGFLAGS)
-LDFLAGS		+=	-lSDL -lpthread -lm
+CFLAGS		+=	-Wall -I/usr/local/include/musashi $(DBGFLAGS) -fcommon
+LDFLAGS		+=	-lSDL -lpthread -lm -fcommon
 PREFIX		=	/usr/local
 
 #Extra install targets

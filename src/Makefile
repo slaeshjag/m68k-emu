@@ -8,7 +8,7 @@ OBJFILES	=	$(SRCFILES:.c=.o)
 
 all: $(OBJFILES) $(DEPENDS)
 	@echo " [MAKE] cpu/"
-	@make -C cpu/
+	@+make -C cpu/
 	
 	@echo " [ LD ] $(BIN)"
 	@$(CC) $(CFLAGS) $(OBJFILES) -o $(BIN) cpu/cpu.a $(LDFLAGS)

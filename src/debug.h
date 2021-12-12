@@ -5,5 +5,6 @@
 void debug_init();
 void debug_send(uint8_t byte);
 uint8_t debug_recv();
+void debug_hook(uint32_t pc);
 
 #endif
