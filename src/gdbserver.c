@@ -6,6 +6,7 @@
 #include <pthread.h>
 #include <semaphore.h>
 
+#include "debug.h"
 #include "gdbserver.h"
 
 #include "cpu/m68000.h"
@@ -242,9 +243,35 @@ static void _cmd_load_binary(GdbServer *server, char *arg){
 }
 
 static void _cmd_break_insert(GdbServer *server, char *arg){
+	int type, kind;
+	uint32_t address;
+
+	sscanf(arg, "%X,%X,%X", &type, &address, &kind);
+
+	switch (type) {
+		case GDB_SERVER_BREAKPOINT_TYPE_HARDWARE:
+			debug_breakpoint_add(address);
+			_reply_simple(server, GDB_SERVER_REPLY_OK);
+			break;
+		default:
+			_reply_simple(server, "");
+	}
 }
 
 static void _cmd_break_remove(GdbServer *server, char *arg){
+	int type, kind;
+	uint32_t address;
+
+	sscanf(arg, "%X,%X,%X", &type, &address, &kind);
+
+	switch (type) {
+		case GDB_SERVER_BREAKPOINT_TYPE_HARDWARE:
+			debug_breakpoint_remove(address);
+			_reply_simple(server, GDB_SERVER_REPLY_OK);
+			break;
+		default:
+			_reply_simple(server, "");
+	}
 }
 
 static void _reply_simple(GdbServer *server, const char *s) {
