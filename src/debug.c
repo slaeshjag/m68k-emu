@@ -84,7 +84,8 @@ void debug_cpu_set_run(int run) {
 
 
 void debug_cpu_wait() {
-	while (!_cpu_stopped)
+	int s;
+	while (!_cpu_stopped || (sem_getvalue(&_cpu_run_sem, &s), s))
 		usleep(10);
 }
 
@@ -131,7 +132,10 @@ void debug_hook(uint32_t pc) {
 	if (!_cpu_run) {
 		_cpu_stopped = 1;
 		sem_wait(&_cpu_run_sem);
-		_cpu_stopped = 0;
+		if (_cpu_run)
+			_cpu_stopped = 0;
+		else
+			goto brk;
 	}
 
 	if ((brk = _check_breakpoint(pc)) < 0) {
@@ -141,7 +145,10 @@ void debug_hook(uint32_t pc) {
 		_single_stepping = 0;
 		_cpu_stopped = 1;
 		sem_wait(&_cpu_run_sem);
-		_cpu_stopped = 0;
+		if (_cpu_run)
+			_cpu_stopped = 0;
+		else
+			goto brk;
 		return;
 	} else
 		goto brk;
