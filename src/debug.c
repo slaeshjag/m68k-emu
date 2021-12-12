@@ -7,6 +7,7 @@
 #include <pthread.h>
 #include <semaphore.h>
 #include "debug.h"
+#include "gdbserver.h"
 
 #define	MAX_BREAKPOINTS	32
 
@@ -17,7 +18,22 @@ static uint32_t _breakpoint[MAX_BREAKPOINTS];
 static sem_t _cpu_run_sem;
 static int _cpu_run;
 static volatile int _cpu_stopped;
+static struct GdbServer _gdb_server;
 
+void debug_send(uint8_t byte) {
+	if(sock < 0)
+		return;
+	send(sock, &byte, 1, 0);
+}
+
+uint8_t debug_recv() {
+	uint8_t ret;
+	if(sock < 0)
+		return printf("arne\n"), 0;
+	if (!recv(sock, &ret, 1, 0))
+		exit(1);
+	return ret;
+}
 
 static int _check_breakpoint(uint32_t pc) {
 	int i;
@@ -61,12 +77,20 @@ static void _set_cpu_run(int run) {
 			usleep(10);
 }
 
+static void *_debug_thread() {
+	_gdb_server.send_byte = debug_send;
+	_gdb_server.recv_byte = debug_recv;
 
+	gdbserver_run(&_gdb_server);
+
+	pthread_exit(NULL);
+}
 
 
 
 void debug_init() {
 	struct sockaddr_in addr = {};
+	pthread_t gdb_pth;
 
 	sem_init(&_cpu_run_sem, 0, 0);
 	listensock = socket(AF_INET, SOCK_STREAM, 0);
@@ -81,6 +105,8 @@ void debug_init() {
 	}
 	listen(listensock, 1);
 	sock = accept(listensock, NULL, NULL);
+	pthread_create(&gdb_pth, NULL, _debug_thread, NULL);
+
 }
 
 
@@ -98,16 +124,3 @@ void debug_hook(uint32_t pc) {
 }
 
 
-void debug_send(uint8_t byte) {
-	if(sock < 0)
-		return;
-	send(sock, &byte, 1, 0);
-}
-
-uint8_t debug_recv() {
-	uint8_t ret;
-	if(sock < 0)
-		return 0;
-	recv(sock, &ret, 1, 0);
-	return ret;
-}

@@ -7,7 +7,7 @@ PREFIX		?=	/usr/local
 BIN		=	$(TOPDIR)/bin/m68k-emu
 
 #DBGFLAGS	=	-O0 -g -D__DEBUG__
-DBGFLAGS	=	-g -O3
+DBGFLAGS	=	-g -O0
 #General flags
 
 CFLAGS		+=	-Wall -I/usr/local/include/musashi $(DBGFLAGS) -fcommon
