@@ -351,14 +351,18 @@ static void _run_command(GdbServer *server, uint8_t *buf, size_t len) {
 
 void *_recv_thread(void *data) {
 	GdbServer *server = data;
-	ParseState state = PARSE_STATE_HEADER;
+	ParseState state = PARSE_STATE_FOOTER;
 	uint8_t c;
 
 	for (;;) {
 		c = server->recv_byte();
-
-		if (c == GDB_SERVER_BREAK && state == PARSE_STATE_HEADER) {
-			debug_cpu_set_run(0);
+		if (c == GDB_SERVER_BREAK) {
+ 			if (state == PARSE_STATE_FOOTER) {
+				debug_cpu_set_run(0);
+				continue;
+			} else {
+				fprintf(stderr, "got break but state is %i\n", state);
+			}
 		}
 		
 		sem_wait(&server->recv_ack_sem);
@@ -423,11 +427,9 @@ void gdbserver_run(GdbServer *server) {
 						break;
 
 					case GDB_SERVER_REPLY_ACK:
-						fprintf(stderr, "ack\n");
 						break;
 
 					case GDB_SERVER_REPLY_NACK:
-						fprintf(stderr, "nack\n");
 						break;
 
 				}
