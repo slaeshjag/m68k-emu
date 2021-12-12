@@ -9,6 +9,7 @@
 #define GDB_SERVER_REPLY_NACK '-'
 
 #define GDB_SERVER_REPLY_OK "OK"
+#define GDB_SERVER_REPLY_ERROR "E"
 
 #define GDB_SERVER_ESCAPE_FLAG 0x20
 
