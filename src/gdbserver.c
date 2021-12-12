@@ -130,6 +130,34 @@ static void _cmd_reg_read(GdbServer *server, char *arg){
 }
 
 static void _cmd_reg_write(GdbServer *server, char *arg){
+	char buf[9] = { 0 };
+	uint32_t val[18];
+	int i;
+
+	if (strlen(arg) != 8*18) {
+		_reply_simple(server, GDB_SERVER_REPLY_ERROR "01");
+		return;
+	}
+
+	for (i = 0; i < 18; i++) {
+		memcpy(buf, arg, 8);
+		arg += 8;
+		val[i] = strtoul(buf, NULL, 16);
+	}
+
+	/* d0 .. d7, a0 .. a7, status register, program counter*/
+	for (i = 0; i < 8; i++) {
+		m68k_dreg(regs, i) = val[i];
+	}
+
+	for (i = 0; i < 8; i++) {
+		m68k_areg(regs, i) = val[i - 8];
+	}
+	
+	regs.sr = val[16];
+	m68k_setpc(val[17]);
+
+	_reply_simple(server, GDB_SERVER_REPLY_OK);
 }
 
 static void _cmd_reg_spec_read(GdbServer *server, char *arg){
