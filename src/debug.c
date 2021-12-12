@@ -64,7 +64,7 @@ static uint32_t _get_breakpoint(int id) {
 void debug_breakpoint_remove(uint32_t address) {
 	int i;
 
-	for (i = 0; i < address; i++)
+	for (i = 0; i < MAX_BREAKPOINTS; i++)
 		if (_breakpoint[i] == address)
 			_breakpoint[i] = 0;
 }
