@@ -90,6 +90,7 @@ static void _cmd_extended(GdbServer *server, char *arg){
 }
 
 static void _cmd_query(GdbServer *server, char *arg){
+	_reply_simple(server, "S05");
 }
 
 static void _cmd_continue(GdbServer *server, char *arg){
@@ -123,9 +124,11 @@ static void _cmd_reg_spec_write(GdbServer *server, char *arg){
 }
 
 static void _cmd_qoffsets(GdbServer *server, char *arg){
+	_reply_simple(server, "Text=0;Data=0;Bss=0;");
 }
 
 static void _cmd_qsupported(GdbServer *server, char *arg){
+	_reply_simple(server, "PacketSize=280");
 }
 
 static void _cmd_qsymbol(GdbServer *server, char *arg){
@@ -163,7 +166,7 @@ static void _reply(GdbServer *server, const uint8_t *s, size_t len) {
 		checksum += i;
 	}
 
-	sprintf(checksum_str, "%hhX", checksum);
+	sprintf((char *) checksum_str, "%hhX", checksum);
 
 	server->send_byte(checksum_str[0]);
 	server->send_byte(checksum_str[1]);
@@ -174,9 +177,9 @@ static void _run_command(GdbServer *server, uint8_t *buf, size_t len) {
 
 	for (i = 0; i < GDB_SERVER_COMMANDS; i++) {
 		size_t cmdlen = strlen(_command_str[i]);
-		if (!strncmp(_command_str[i], buf, cmdlen)) {
+		if (!strncmp(_command_str[i], (char *) buf, cmdlen)) {
 			fprintf(stderr, "command %s\n", buf);
-			_command_func[i](server, buf + cmdlen);
+			_command_func[i](server, (char *) (buf + cmdlen));
 			break;
 		}
 	}
@@ -192,76 +195,73 @@ void gdbserver_run(GdbServer *server) {
 	uint8_t buf[300], c;
 	ParseState state = PARSE_STATE_HEADER, state_next;
 
-
+	int i = 0;
 	for (;;) {
-		int i = 0;
-		for (;;) {
-			state = state_next;
 
-			c = server->recv_byte();
-			state_next = state;
+		c = server->recv_byte();
+		state_next = state;
 
-			switch (state) {
-				case PARSE_STATE_HEADER:
-					switch (c) {
-						case GDB_SERVER_HEADER:
-							state_next = PARSE_STATE_COMMAND;
-							break;
+		switch (state) {
+			case PARSE_STATE_HEADER:
+				switch (c) {
+					case GDB_SERVER_HEADER:
+						state_next = PARSE_STATE_COMMAND;
+						break;
 
-						case GDB_SERVER_BREAK:
-							fprintf(stderr, "break\n");
-							break;
+					case GDB_SERVER_BREAK:
+						fprintf(stderr, "break\n");
+						break;
 
-						case GDB_SERVER_REPLY_ACK:
-							fprintf(stderr, "ack\n");
-							break;
+					case GDB_SERVER_REPLY_ACK:
+						fprintf(stderr, "ack\n");
+						break;
 
-						case GDB_SERVER_REPLY_NACK:
-							fprintf(stderr, "nack\n");
-							break;
+					case GDB_SERVER_REPLY_NACK:
+						fprintf(stderr, "nack\n");
+						break;
 
-					}
+				}
 
-					break;
+				break;
 
-				case PARSE_STATE_COMMAND:
-					switch (c) {
-						case GDB_SERVER_FOOTER:
-							state_next = PARSE_STATE_FOOTER;
-							break;
+			case PARSE_STATE_COMMAND:
+				switch (c) {
+					case GDB_SERVER_FOOTER:
+						state_next = PARSE_STATE_FOOTER;
+						break;
 
-						case GDB_SERVER_ESCAPE:
-							state_next = PARSE_STATE_ESCAPE;
-							break;
+					case GDB_SERVER_ESCAPE:
+						state_next = PARSE_STATE_ESCAPE;
+						break;
 
-						default:
-							buf[i++] = c;
-							break;
-					}
+					default:
+						buf[i++] = c;
+						break;
+				}
 
-					break;
+				break;
 
-				case PARSE_STATE_FOOTER:
-					state_next = PARSE_STATE_CHECKSUM;
-					buf[i] = 0;
-					break;
+			case PARSE_STATE_FOOTER:
+				state_next = PARSE_STATE_CHECKSUM;
+				buf[i] = 0;
+				break;
 
-				case PARSE_STATE_CHECKSUM:
-					_reply_ack(server, true);
-					_run_command(server, buf, i);
+			case PARSE_STATE_CHECKSUM:
+				_reply_ack(server, true);
+				_run_command(server, buf, i);
 
-					i = 0;
-					state_next = PARSE_STATE_HEADER;
-					break;
+				i = 0;
+				state_next = PARSE_STATE_HEADER;
+				break;
 
-				case PARSE_STATE_ESCAPE:
-					buf[i++] = c;
-
-			}
-
+			case PARSE_STATE_ESCAPE:
+				buf[i++] = c;
 
 		}
-		buf[i] = 0;
+
+
+	state = state_next;
 	}
+
 }
 
