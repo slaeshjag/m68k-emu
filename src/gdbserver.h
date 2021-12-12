@@ -42,6 +42,17 @@ enum GdbServerCommand {
 	GDB_SERVER_COMMAND_STEP_SIGNAL,
 };
 
+
+typedef enum GdbServerBreakpointType GdbServerBreakpointType;
+enum GdbServerBreakpointType {
+	GDB_SERVER_BREAKPOINT_TYPE_SOFTWARE,
+	GDB_SERVER_BREAKPOINT_TYPE_HARDWARE,
+	GDB_SERVER_BREAKPOINT_TYPE_WATCH_WRITE,
+	GDB_SERVER_BREAKPOINT_TYPE_WATCH_READ,
+	GDB_SERVER_BREAKPOINT_TYPE_WATCH_ACCESS,
+	GDB_SERVER_BREAKPOINT_TYPES
+};
+
 typedef struct GdbServer GdbServer;
 struct GdbServer {
 	void (*send_byte)(uint8_t c);
