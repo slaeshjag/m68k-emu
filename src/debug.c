@@ -110,6 +110,9 @@ void debug_init() {
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons(1234);
 	inet_pton(AF_INET, "127.0.0.1", &addr.sin_addr);
+
+	int reuse = 1;
+	setsockopt(listensock, SOL_SOCKET, SO_REUSEADDR, (void *) &reuse, sizeof(reuse));
 	
 	if(bind(listensock, &addr, sizeof(addr)) < 0) {
 		sock = -1;
