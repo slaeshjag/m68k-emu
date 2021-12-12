@@ -16,10 +16,10 @@ int listensock, sock;
 
 static uint32_t _breakpoint[MAX_BREAKPOINTS];
 static sem_t _cpu_run_sem;
-static int _cpu_run;
+static volatile int _cpu_run;
 static volatile int _cpu_stopped;
 static struct GdbServer *_gdb_server;
-static int _single_stepping;
+static volatile int _single_stepping;
 
 void debug_send(uint8_t byte) {
 	if(sock < 0)
