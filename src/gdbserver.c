@@ -133,9 +133,9 @@ static void _cmd_mem_read(GdbServer *server, char *arg){
 static void _cmd_mem_write(GdbServer *server, char *arg){
 	uint32_t addr = 0, len = 0;
 	char byte[3] = {0};
-	int i;
+	int i, off;
 
-	int off = sscanf(arg, "%X,%X:", &addr, &len);
+	sscanf(arg, "%X,%X:%n", &addr, &len, &off);
 
 	for (i = 0; i < len; i++) {
 		byte[0] = arg[off + i*2];
