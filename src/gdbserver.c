@@ -304,28 +304,30 @@ static void _run_command(GdbServer *server, uint8_t *buf, size_t len) {
 
 void *_recv_thread(void *data) {
 	GdbServer *server = data;
+	ParseState state = PARSE_STATE_HEADER;
 	uint8_t c;
 
 	for (;;) {
 		c = server->recv_byte();
 
-		if (c == GDB_SERVER_BREAK) {
+		if (c == GDB_SERVER_BREAK && state == PARSE_STATE_HEADER) {
 			//TODO: break cpu
 		}
 		
 		sem_wait(&server->recv_ack_sem);
-		//TODO: figure out state, use it to filter out fake breaks inside commands
+		state = server->state;
 		server->c = c;
 		sem_post(&server->recv_sem);
 	}
 
 }
 
-static uint8_t _recv_internal(GdbServer *server) {
+static uint8_t _recv_internal(GdbServer *server, ParseState state) {
 	uint8_t c;
 
 	sem_wait(&server->recv_sem);
 	c = server->c;
+	server->state = state;
 	sem_post(&server->recv_ack_sem);
 
 	return c;
@@ -344,20 +346,22 @@ GdbServer *gdbserver_init(uint8_t (*recv_byte)(), void (*send_byte)(uint8_t)) {
 	sem_init(&server->recv_sem, 0, 0);
 	sem_init(&server->recv_ack_sem, 0, 0);
 
+	server->state = PARSE_STATE_HEADER;
+
 	return server;
 }
 
 
 void gdbserver_run(GdbServer *server) {
 	uint8_t buf[300], c;
-	ParseState state = PARSE_STATE_HEADER, state_next;
+	ParseState state = server->state, state_next;
 
 	pthread_create(&server->thread, NULL, _recv_thread, server);
 
 	int i = 0;
 	for (;;) {
 
-		c = _recv_internal(server);
+		c = _recv_internal(server, state);
 		state_next = state;
 
 		switch (state) {
@@ -419,7 +423,7 @@ void gdbserver_run(GdbServer *server) {
 		}
 
 
-	state = state_next;
+		state = state_next;
 	}
 
 }

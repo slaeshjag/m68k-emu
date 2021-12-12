@@ -51,6 +51,7 @@ struct GdbServer {
 	sem_t recv_sem;
 	sem_t recv_ack_sem;
 	uint8_t c;
+	int state;
 };
 
 GdbServer *gdbserver_init(uint8_t (*recv_byte)(), void (*send_byte)(uint8_t));
