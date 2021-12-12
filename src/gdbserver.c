@@ -98,12 +98,18 @@ static void _cmd_query(GdbServer *server, char *arg){
 }
 
 static void _cmd_continue(GdbServer *server, char *arg){
+	debug_cpu_set_run(1);
+	debug_cpu_wait();
+	_reply_simple(server, "S05");
 }
 
 static void _cmd_continue_signal(GdbServer *server, char *arg){
 }
 
 static void _cmd_step(GdbServer *server, char *arg){
+	debug_cpu_step();
+	debug_cpu_wait();
+	_reply_simple(server, "S05");
 }
 
 static void _cmd_step_signal(GdbServer *server, char *arg){
@@ -311,7 +317,7 @@ void *_recv_thread(void *data) {
 		c = server->recv_byte();
 
 		if (c == GDB_SERVER_BREAK && state == PARSE_STATE_HEADER) {
-			//TODO: break cpu
+			debug_cpu_set_run(0);
 		}
 		
 		sem_wait(&server->recv_ack_sem);
@@ -344,7 +350,7 @@ GdbServer *gdbserver_init(uint8_t (*recv_byte)(), void (*send_byte)(uint8_t)) {
 	server->send_byte = send_byte;
 
 	sem_init(&server->recv_sem, 0, 0);
-	sem_init(&server->recv_ack_sem, 0, 0);
+	sem_init(&server->recv_ack_sem, 0, 1);
 
 	server->state = PARSE_STATE_HEADER;
 

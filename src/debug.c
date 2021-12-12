@@ -18,7 +18,7 @@ static uint32_t _breakpoint[MAX_BREAKPOINTS];
 static sem_t _cpu_run_sem;
 static int _cpu_run;
 static volatile int _cpu_stopped;
-static struct GdbServer _gdb_server;
+static struct GdbServer *_gdb_server;
 static int _single_stepping;
 
 void debug_send(uint8_t byte) {
@@ -46,7 +46,7 @@ static int _check_breakpoint(uint32_t pc) {
 }
 
 
-static int _add_breakpoint(uint32_t pc) {
+int debug_breakpoint_add(uint32_t pc) {
 	int i;
 
 	for (i = 0; i < MAX_BREAKPOINTS; i++)
@@ -61,7 +61,7 @@ static uint32_t _get_breakpoint(int id) {
 }
 
 
-static void _remove_breakpoint(int id) {
+void debug_breakpoint_remove(int id) {
 	_breakpoint[id] = 0;
 }
 
@@ -73,9 +73,9 @@ void debug_cpu_set_run(int run) {
 	_cpu_run = run;
 	if (run)
 		sem_post(&_cpu_run_sem);
-	else
+/*	else
 		while (!_cpu_stopped)
-			usleep(10);
+			usleep(10);*/
 }
 
 
@@ -87,10 +87,9 @@ void debug_cpu_wait() {
 
 
 static void *_debug_thread() {
-	_gdb_server.send_byte = debug_send;
-	_gdb_server.recv_byte = debug_recv;
+	_gdb_server = gdbserver_init(debug_recv, debug_send);
 
-	gdbserver_run(&_gdb_server);
+	gdbserver_run(_gdb_server);
 
 	pthread_exit(NULL);
 }
@@ -123,7 +122,6 @@ void debug_hook(uint32_t pc) {
 	int brk;
 
 	if (!_cpu_run) {
-	stop:
 		_cpu_stopped = 1;
 		sem_wait(&_cpu_run_sem);
 		_cpu_stopped = 0;
@@ -132,9 +130,14 @@ void debug_hook(uint32_t pc) {
 	if ((brk = _check_breakpoint(pc)) < 0) {
 		if (!_single_stepping)
 			return;
+	brk:
 		_single_stepping = 0;
-		goto stop;
-	}
+		_cpu_stopped = 1;
+		sem_wait(&_cpu_run_sem);
+		_cpu_stopped = 0;
+		return;
+	} else
+		goto brk;
 }
 
 
