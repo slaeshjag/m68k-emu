@@ -19,6 +19,7 @@ static sem_t _cpu_run_sem;
 static int _cpu_run;
 static volatile int _cpu_stopped;
 static struct GdbServer _gdb_server;
+static int _single_stepping;
 
 void debug_send(uint8_t byte) {
 	if(sock < 0)
@@ -29,7 +30,7 @@ void debug_send(uint8_t byte) {
 uint8_t debug_recv() {
 	uint8_t ret;
 	if(sock < 0)
-		return printf("arne\n"), 0;
+		return 0;
 	if (!recv(sock, &ret, 1, 0))
 		exit(1);
 	return ret;
@@ -68,7 +69,7 @@ static void _remove_breakpoint(int id) {
 // Read memory with x_get_byte
 
 
-static void _set_cpu_run(int run) {
+void debug_cpu_set_run(int run) {
 	_cpu_run = run;
 	if (run)
 		sem_post(&_cpu_run_sem);
@@ -76,6 +77,14 @@ static void _set_cpu_run(int run) {
 		while (!_cpu_stopped)
 			usleep(10);
 }
+
+
+void debug_cpu_wait() {
+	while (!_cpu_stopped)
+		usleep(10);
+}
+
+
 
 static void *_debug_thread() {
 	_gdb_server.send_byte = debug_send;
@@ -114,13 +123,23 @@ void debug_hook(uint32_t pc) {
 	int brk;
 
 	if (!_cpu_run) {
+	stop:
 		_cpu_stopped = 1;
 		sem_wait(&_cpu_run_sem);
 		_cpu_stopped = 0;
 	}
 
-	if ((brk = _check_breakpoint(pc)) < 0)
-		return;
+	if ((brk = _check_breakpoint(pc)) < 0) {
+		if (!_single_stepping)
+			return;
+		_single_stepping = 0;
+		goto stop;
+	}
 }
 
 
+
+void debug_cpu_step() {
+	_single_stepping = 1;
+	debug_cpu_set_run(1);
+}
