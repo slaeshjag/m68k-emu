@@ -10,6 +10,8 @@
 
 #define GDB_SERVER_REPLY_OK "OK"
 
+#define GDB_SERVER_ESCAPE_FLAG 0x20
+
 typedef enum GdbServerCommand GdbServerCommand;
 enum GdbServerCommand {
 	GDB_SERVER_COMMAND_QUERY,
