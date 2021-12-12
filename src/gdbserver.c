@@ -133,9 +133,48 @@ static void _cmd_reg_write(GdbServer *server, char *arg){
 }
 
 static void _cmd_reg_spec_read(GdbServer *server, char *arg){
+	char buf[8 + 1] = {0};
+	uint32_t val = 0;
+	uint8_t reg = 0;
+
+	sscanf(arg, "%hhx", &reg);
+
+	if (reg < 8)
+		val = m68k_dreg(regs, reg);
+	else if (reg < 16)
+		val = m68k_areg(regs, reg - 8);
+	else if (reg == 16)
+		val = regs.sr;
+	else if (reg == 17)
+		val = m68k_getpc();
+	else {
+		_reply_simple(server, GDB_SERVER_REPLY_ERROR "01");
+		return;
+	}
+
+	sprintf(buf, "%.8X", val);
+	_reply_simple(server, buf);
 }
 
 static void _cmd_reg_spec_write(GdbServer *server, char *arg){
+	uint32_t val = 0;
+	uint8_t reg = 0;
+	sscanf(arg, "%hhx=%x", &reg, &val);
+
+	if (reg < 8)
+		m68k_dreg(regs, reg) = val;
+	else if (reg < 16)
+		m68k_areg(regs, reg - 8) = val;
+	else if (reg == 16)
+		regs.sr = val;
+	else if (reg == 17)
+		m68k_setpc(val);
+	else {
+		_reply_simple(server, GDB_SERVER_REPLY_ERROR "01");
+		return;
+	}
+
+	_reply_simple(server, GDB_SERVER_REPLY_OK);
 }
 
 static void _cmd_qoffsets(GdbServer *server, char *arg){
