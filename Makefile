@@ -18,7 +18,7 @@ all:
 
 install:
 	@echo " [INST] m68k-emu"
-	@install -s -t $(PREFIX)/bin $(BIN)
+	@install  -t $(PREFIX)/bin $(BIN)
 
 clean:
 	@echo " [ RM ] bin/"
