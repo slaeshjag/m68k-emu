@@ -5,6 +5,8 @@
 #include "chipset.h"
 #include "palette.h"
 #include "timer.h"
+#include "uart.h"
+#include "interrupt.h"
 #include <SDL/SDL.h>
 #include <arpa/inet.h>
 
@@ -196,6 +198,7 @@ void vga_render_line() {
 	}
 
 	vga_state.keyboard |= 0xC0;
+	uart_irq_handle();
 
 	return;
 }
