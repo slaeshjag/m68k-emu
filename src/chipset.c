@@ -114,10 +114,10 @@ unsigned int chipset_new_read_io(unsigned int addr) {
 }
 
 
-void chipset_write_io(unsigned int addr, unsigned int data, bool new_map) {
+void chipset_write_io(unsigned int addr, unsigned int data, bool tb1) {
 	unsigned int port = (addr & 0xFFFC)/4;
 	//fprintf(stderr, "write_io %u 0x%X %u\n",port, addr, data);
-	if (new_map)
+	if (tb1)
 		return chipset_new_write_io(addr, data);
 	
 	switch(port) {
@@ -166,10 +166,10 @@ void chipset_write_io(unsigned int addr, unsigned int data, bool new_map) {
 }
 
 
-uint32_t chipset_read_io(unsigned int addr, bool new_map) {
+uint32_t chipset_read_io(unsigned int addr, bool tb1) {
 	unsigned int port = (addr & 0xFFFC)/4;
 	
-	if (new_map)
+	if (tb1)
 		return chipset_new_read_io(addr);
 	
 	switch(port) {

@@ -1,4 +1,10 @@
-/* Memory map								*
+/* Memory map - Trollbook Sr. 						*
+** 0x00000000 - 0x000001FF	Boot ROM				*
+** 0x20000000 - 0x23FFFFFF	Main RAM				*/
+
+
+
+/* Memory map - Trollbook 1						*
 ** 0x00000000 - 0x0007FFFF	LLRAM					*
 ** 0x00080000 - 0x000FFFFF	ROM					*
 ** 0x10000000 - 0x13FFFFFF	Main RAM				*
@@ -32,31 +38,37 @@ uint32_t junk;
 void *mem_decode_addr(unsigned int address, int *write) {
 	*write = 1;
 
-	if (address < 0x80000UL) {
-		*write = 0;
-		return mem->rom + address;
-	} else if (address >= 0x80000UL && address < 0x100000UL) {
-		return mem->llram + (address - 0x80000UL);
-	}
+	if (mem->tb1) {
+		if (address < 0x80000UL) {
+			*write = 0;
+			return mem->rom + address;
+		} else if (address >= 0x80000UL && address < 0x100000UL) {
+			return mem->llram + (address - 0x80000UL);
+		}
 
-	if (mem->new_map) {
 		if (address >= 0x80000000UL && address < 0x84000000UL)
 			return mem->mram + (address - 0x80000000UL);
-	} else {
-		if (address >= 0x1000000UL && address < 0x5000000UL)
-			return mem->mram + (address - 0x1000000UL);
+
+		if (((address & 0xFFF00000UL) == 0x100000UL)) {
+			*write = 0;
+			return mem->llram;
+		}
+
+		if ((address & 0xFFF00000UL) == 0x200000UL) {
+			/* Dummy value */
+			*write = 0;
+			return mem->llram;
+		}
+	} else { /* Trollbook Sr. */
+		if (address < 0x80000UL) {
+			*write = 0;
+			return mem->rom + address;
+		}
+
+		if (address >= 0x20000000 && address <= 0x23FFFFFF)
+			return mem->mram + (address - 0x20000000);
 	}
 
-	if (((address & 0xFFF00000UL) == 0x100000UL) && mem->new_map) {
-		*write = 0;
-		return mem->llram;
-	}
-
-	if ((address & 0xFFF00000UL) == 0x200000UL) {
-		/* Dummy value */
-		*write = 0;
-		return mem->llram;
-	}
 	fprintf(stderr, "Invalid address 0x%X (PC=0x%X)\n", address, m68k_getpc());
 	return NULL;
 }
@@ -84,12 +96,11 @@ unsigned int m68k_read_memory_8(unsigned int address) {
 
 	_do_check_pointer(address, 1, 0);
 
-	if (mem->new_map) {
+	if (mem->tb1) {
 		if (!write && (address & 0xFFF00000UL) == 0x100000UL)
-			tmp = chipset_read_io(address, mem->new_map), ptr = (void *) &tmp;
+			tmp = chipset_read_io(address, mem->tb1), ptr = (void *) &tmp;
 	} else {
-		if (!write && (address & 0xFFF00000UL) == 0x200000UL)
-			tmp = chipset_read_io(address, mem->new_map), ptr = (void *) &tmp;
+		/* TODO: connect to arne */
 	}
 
 	return *ptr;
@@ -107,16 +118,14 @@ unsigned int m68k_read_memory_16(unsigned int address) {
 	
 	_do_check_pointer(address, 2, 0);
 
-	if (mem->new_map) {
+	if (mem->tb1) {
 		if (!write && (address & 0xFFF00000UL) == 0x200000UL)
-			data = chipset_read_io(address, mem->new_map), ptr = (void *) &tmp;
+			data = chipset_read_io(address, mem->tb1), ptr = (void *) &tmp;
 		else
 			data = ((*ptr) << 8) | ((*(ptr + 1)) << 0);
 	} else {
-		if (!write && (address & 0xFFF00000UL) == 0x100000UL)
-			data = chipset_read_io(address, mem->new_map), ptr = (void *) &tmp;
-		else
-			data = ((*ptr) << 8) | ((*(ptr + 1)) << 0);
+		/* TODO: Arne */
+		data = ((*ptr) << 8) | ((*(ptr + 1)) << 0);
 	}
 	return data;
 }
@@ -132,16 +141,14 @@ unsigned int m68k_read_memory_32(unsigned int address) {
 	
 	_do_check_pointer(address, 4, 0);
 	
-	if (mem->new_map) {
+	if (mem->tb1) {
 		if (!write && (address & 0xFFF00000UL) == 0x100000UL)
-			data = chipset_read_io(address, mem->new_map), ptr = (void *) &tmp;
+			data = chipset_read_io(address, mem->tb1), ptr = (void *) &tmp;
 		else
 			data = ((*ptr) << 24) | ((*(ptr + 1)) << 16) | ((*(ptr + 2)) << 8) | ((*(ptr + 3)) << 0);
 	} else {
-		if (!write && (address & 0xFFF00000UL) == 0x200000UL)
-			data = chipset_read_io(address, mem->new_map), ptr = (void *) &tmp;
-		else
-			data = ((*ptr) << 24) | ((*(ptr + 1)) << 16) | ((*(ptr + 2)) << 8) | ((*(ptr + 3)) << 0);
+		/* TODO: Arne */
+		data = ((*ptr) << 24) | ((*(ptr + 1)) << 16) | ((*(ptr + 2)) << 8) | ((*(ptr + 3)) << 0);
 	}
 	return data;
 }
@@ -166,12 +173,11 @@ void m68k_write_memory_8(unsigned int address, unsigned int value) {
 	_do_check_pointer(address, 1, 1);
 	
 	if (!write) {
-		if (mem->new_map) {
+		if (mem->tb1) {
 			if ((address & 0xFFF00000UL) == 0x100000UL)
-				return chipset_write_io(address, value, mem->new_map);
+				return chipset_write_io(address, value, mem->tb1);
 		} else {
-			if ((address & 0xFFF00000UL) == 0x200000UL)
-				return chipset_write_io(address, value, mem->new_map);
+			/* TODO: Arne */
 		}
 
 		if (address == 0xFFFFFFFF)
@@ -197,12 +203,11 @@ void m68k_write_memory_16(unsigned int address, unsigned int value) {
 	_do_check_pointer(address, 2, 1);
 
 	if (!write) {
-		if (mem->new_map) {
+		if (mem->tb1) {
 			if ((address & 0xFFF00000UL) == 0x100000UL)
-				return chipset_write_io(address, value, mem->new_map);
+				return chipset_write_io(address, value, mem->tb1);
 		} else {
-			if ((address & 0xFFF00000UL) == 0x200000UL)
-				return chipset_write_io(address, value, mem->new_map);
+			/* TODO: Arne */
 		}
 
 		fprintf(stderr, "Invalid write to 0x%X (PC=0x%X\n", address, m68k_getpc());
@@ -226,12 +231,11 @@ void m68k_write_memory_32(unsigned int address, unsigned int value) {
 	_do_check_pointer(address, 4, 1);
 	
 	if (!write) {
-		if (mem->new_map) {
+		if (mem->tb1) {
 			if ((address & 0xFFF00000UL) == 0x100000UL)
-				return chipset_write_io(address, value, mem->new_map);
+				return chipset_write_io(address, value, mem->tb1);
 		} else {
-			if ((address & 0xFFF00000UL) == 0x200000UL)
-				return chipset_write_io(address, value, mem->new_map);
+			/* TODO: Arne */
 		}
 		fprintf(stderr, "Invalid write to 0x%X (PC=0x%X\n", address, m68k_getpc());
 		return;
@@ -244,12 +248,12 @@ void m68k_write_memory_32(unsigned int address, unsigned int value) {
 }
 
 
-void mem_init(const char *filename, bool new_map) {
+void mem_init(const char *filename, bool tb1) {
 	FILE *fp;
 	size_t sz;
 	int i;
 
-	fprintf(stderr, "using %s memory layout\n", new_map?"new":"old");
+	fprintf(stderr, "using %s memory layout\n", tb1?"Trollbook 1":"Trollbook Sr.");
 
 	mem = calloc(sizeof(*mem), 1);
 
@@ -257,7 +261,7 @@ void mem_init(const char *filename, bool new_map) {
 	mem->rom = malloc(1024*512);
 	mem->mram = malloc(MEM_SIZE);
 	mem->rom_active = 1;
-	mem->new_map = new_map;
+	mem->tb1 = tb1;
 
 	fp = fopen(filename, "r");
 	if(!fp) {
@@ -266,6 +270,8 @@ void mem_init(const char *filename, bool new_map) {
 	}
 	fseek(fp, 0, SEEK_END);
 	sz = ftell(fp);
+	if (sz > 1024*512)
+		sz = 1024*512;
 	rewind(fp);
 	fread(mem->rom, sz, 1, fp);
 	fclose(fp);

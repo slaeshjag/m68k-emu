@@ -117,7 +117,7 @@ void vga_render_line() {
 		}
 
 	no_cursor:
-		if (!mem->new_map) {
+		if (!mem->tb1) {
 			pix = ((*ptr++) << 8);
 			pix |= *ptr;
 		} else {

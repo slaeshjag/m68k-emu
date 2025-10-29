@@ -77,7 +77,7 @@ void spi_sd_init(const char *sd_image) {
 
 
 int spi_sd_check_enabled() {
-	if (!mem->new_map) {
+	if (!mem->tb1) {
 		if (!(spi_state.line_select & 0x4))
 			return 0;
 		if (sd_state.state == SD_STATE_NOCARD)

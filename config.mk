@@ -10,7 +10,7 @@ BIN		=	$(TOPDIR)/bin/m68k-emu
 DBGFLAGS	=	-g -O0
 #General flags
 
-CFLAGS		+=	-Wall -I/usr/local/include/musashi $(DBGFLAGS) -fcommon
+CFLAGS		+=	-Wall -I/usr/local/include/musashi $(DBGFLAGS) -fcommon -Wno-error=implicit-function-declaration
 LDFLAGS		+=	-lSDL -lpthread -lm -fcommon
 PREFIX		=	/usr/local
 

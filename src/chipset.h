@@ -5,8 +5,8 @@
 #include <stdbool.h>
 
 void chipset_int_set(int int_no, int set_unset);
-void chipset_write_io(unsigned int addr, unsigned int data, bool new_map);
-uint32_t chipset_read_io(unsigned int addr, bool new_map);
+void chipset_write_io(unsigned int addr, unsigned int data, bool tb1);
+uint32_t chipset_read_io(unsigned int addr, bool tb1);
 void chipset_set_boot_switch(int sw);
 
 enum ChipsetIntNum {

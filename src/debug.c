@@ -115,7 +115,7 @@ void debug_init() {
 	int reuse = 1;
 	setsockopt(listensock, SOL_SOCKET, SO_REUSEADDR, (void *) &reuse, sizeof(reuse));
 	
-	if(bind(listensock, &addr, sizeof(addr)) < 0) {
+	if(bind(listensock, (const struct sockaddr *) &addr, sizeof(addr)) < 0) {
 		sock = -1;
 		return;
 	}

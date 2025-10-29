@@ -6,7 +6,7 @@
 #define MEM_SIZE (1024*1024*64)
 
 struct Mem {
-	bool			new_map;		// If true, use actual hardware map
+	bool			tb1;		// If true, use trollbook 1 map
 	void 			*llram;
 	void			*mram;
 	void			*rom;
@@ -15,7 +15,7 @@ struct Mem {
 };
 
 
-void mem_init(const char *filename, bool new_map);
+void mem_init(const char *filename, bool tb1);
 void *mem_decode_addr(unsigned int address, int *write);
 
 extern struct Mem *mem;
